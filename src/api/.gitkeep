@@ -1,0 +1,2 @@
+# API helpers (RBAC enforcement, request validation, error mapping)
+# dipakai oleh Route Handlers di app/api/**.

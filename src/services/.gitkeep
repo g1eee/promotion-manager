@@ -1,0 +1,2 @@
+# Application Services (orkestrasi domain)
+# Framework-agnostic; menerima repository/port via dependency injection sederhana.

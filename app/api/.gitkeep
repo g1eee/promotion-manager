@@ -1,0 +1,2 @@
+# Application / API Layer - Next.js Route Handlers (app/api/**)
+# Menegakkan RBAC, validasi request, mapping error domain -> HTTP, orkestrasi transaksi.
