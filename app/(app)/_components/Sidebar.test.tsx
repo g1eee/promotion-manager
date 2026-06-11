@@ -52,6 +52,7 @@ const SPV_ONLY_LABELS = [
 /** Labels visible to every role. */
 const SHARED_LABELS = [
   "Home",
+  "Timeline",
   "Execution",
   "Campaign History",
   "Promo History",

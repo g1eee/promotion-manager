@@ -15,7 +15,6 @@ import type {
   RecentApprovalActivity,
   RecentCampaignActivity,
   RecentPromoActivity,
-  UpcomingPromo,
 } from "@services/index";
 import {
   ArrowRight,
@@ -63,25 +62,12 @@ function timeOfDay(value: Date | string): string {
   );
 }
 
-function dayMonth(value: Date | string): string {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-  }).format(new Date(value));
-}
-
 function greeting(): string {
   const hour = new Date().getHours();
   if (hour < 11) return "Selamat pagi";
   if (hour < 15) return "Selamat siang";
   if (hour < 19) return "Selamat sore";
   return "Selamat malam";
-}
-
-function startsLabel(daysUntilStart: number): string {
-  if (daysUntilStart <= 0) return "Mulai hari ini";
-  if (daysUntilStart === 1) return "Mulai besok";
-  return `Mulai ${daysUntilStart} hari lagi`;
 }
 
 function endsLabel(daysUntilEnd: number): string {
@@ -98,7 +84,6 @@ function DashboardSkeleton() {
       <SkeletonCard lines={1} label="Memuat antrian" />
       <div className="pms-cc__layout">
         <div className="pms-cc__main">
-          <SkeletonCard lines={4} label="Memuat timeline" />
           <SkeletonCard lines={4} label="Memuat aktivitas" />
         </div>
         <div className="pms-cc__rail">
@@ -147,45 +132,6 @@ function HeroSummary({
         </Link>
       </div>
     </section>
-  );
-}
-
-function PromotionTimeline({
-  promos,
-}: {
-  readonly promos: readonly UpcomingPromo[];
-}) {
-  return (
-    <Card title="Promotion Timeline" subtitle="Promo yang akan datang">
-      {promos.length === 0 ? (
-        <p className="pms-cc-empty">Tidak ada promo dalam 7 hari ke depan.</p>
-      ) : (
-        <ol className="pms-cc-timeline">
-          {promos.map((promo) => (
-            <li key={promo.id} className="pms-cc-timeline__item">
-              <div className="pms-cc-timeline__date">
-                <CalendarClock size={14} aria-hidden="true" />
-                <span>{dayMonth(promo.startsAt)}</span>
-              </div>
-              <div className="pms-cc-timeline__body">
-                <Link
-                  href={`/promo/scenarios?editPromoId=${encodeURIComponent(promo.id)}`}
-                  className="pms-cc-timeline__name"
-                >
-                  {promo.name}
-                </Link>
-                <span className="pms-cc-timeline__meta">
-                  {promo.campaignName} · {promo.promoType}
-                </span>
-              </div>
-              <span className="pms-cc-timeline__when">
-                {startsLabel(promo.daysUntilStart)}
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </Card>
   );
 }
 
@@ -433,7 +379,6 @@ export function DashboardView() {
 
       <div className="pms-cc__layout">
         <div className="pms-cc__main">
-          <PromotionTimeline promos={summary.upcomingPromos} />
           <RecentActivity summary={summary} />
         </div>
 

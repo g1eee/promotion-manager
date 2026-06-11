@@ -23,6 +23,12 @@ export async function GET(request: Request): Promise<NextResponse> {
   const brandId = url.searchParams.get("brandId") ?? undefined;
   const limitParam = url.searchParams.get("limit");
   const limit = limitParam === null ? undefined : Number(limitParam);
+  const windowParam = url.searchParams.get("upcomingWindowDays");
+  const parsedWindow = windowParam === null ? undefined : Number(windowParam);
+  const upcomingWindowDays =
+    parsedWindow !== undefined && Number.isFinite(parsedWindow)
+      ? parsedWindow
+      : undefined;
 
   try {
     const { dashboardService } = await getContainer();
@@ -30,6 +36,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       brandId,
       userId: subject.userId,
       limit,
+      upcomingWindowDays,
     });
     return NextResponse.json(summary, { status: 200 });
   } catch (error) {

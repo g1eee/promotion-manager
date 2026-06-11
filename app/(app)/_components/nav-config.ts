@@ -33,6 +33,7 @@ import {
   Megaphone,
   Tag,
   Rocket,
+  CalendarClock,
   Package,
   Coins,
   LayoutTemplate,
@@ -75,6 +76,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { label: "Campaigns", href: "/promo/campaigns", icon: Megaphone, roles: SPV_ONLY },
       { label: "Promos", href: "/promo/scenarios", icon: Tag, roles: SPV_ONLY },
+      { label: "Timeline", href: "/promo/timeline", icon: CalendarClock },
       { label: "Execution", href: "/promo/execution", icon: Rocket },
     ],
   },
