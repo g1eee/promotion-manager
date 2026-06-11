@@ -27,22 +27,37 @@
  */
 
 import { Role } from "@domain/enums";
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Megaphone,
+  Tag,
+  Rocket,
+  Package,
+  Coins,
+  LayoutTemplate,
+  History,
+  ClipboardCheck,
+  Building2,
+} from "lucide-react";
 
 export interface NavItem {
   /** Visible label in the sidebar. */
   label: string;
   /** Absolute route path handled by the App Router. */
   href: string;
+  /** Icon rendered beside the label (lucide). */
+  icon?: LucideIcon;
   /**
    * Roles allowed to see this item. When omitted, the item is visible to every
-   * role (e.g. Dashboard). Restricting an item to `[Role.SPV_Marketing]` hides
+   * role (e.g. Home). Restricting an item to `[Role.SPV_Marketing]` hides
    * it from the simplified Admin_Marketplace interface.
    */
   roles?: Role[];
 }
 
 export interface NavGroup {
-  /** Optional group heading. Single-item groups (e.g. Dashboard) omit it. */
+  /** Optional group heading. Single-item groups (e.g. Home) omit it. */
   label?: string;
   /** Items belonging to this group. */
   items: NavItem[];
@@ -53,46 +68,44 @@ const SPV_ONLY: Role[] = [Role.SPV_Marketing];
 
 export const navGroups: NavGroup[] = [
   {
-    items: [{ label: "Dashboard", href: "/dashboard" }],
+    items: [{ label: "Home", href: "/dashboard", icon: LayoutDashboard }],
   },
   {
-    label: "Promo Management",
+    label: "Promotions",
     items: [
-      // Campaign + Promo Scenario creation/management is hidden for Admin.
-      { label: "Campaigns", href: "/promo/campaigns", roles: SPV_ONLY },
-      { label: "Promo Scenarios", href: "/promo/scenarios", roles: SPV_ONLY },
-      // Promo Execution is the Admin landing point — visible to all roles.
-      { label: "Promo Execution", href: "/promo/execution" },
+      { label: "Campaigns", href: "/promo/campaigns", icon: Megaphone, roles: SPV_ONLY },
+      { label: "Promos", href: "/promo/scenarios", icon: Tag, roles: SPV_ONLY },
+      { label: "Execution", href: "/promo/execution", icon: Rocket },
     ],
   },
   {
-    // Master Data is a configuration module — hidden for Admin (Req 1.6).
-    label: "Master Data",
+    label: "Data",
     items: [
-      { label: "Product Master", href: "/master/products", roles: SPV_ONLY },
+      { label: "Products", href: "/master/products", icon: Package, roles: SPV_ONLY },
       {
-        label: "Cost Configuration",
+        label: "Costs",
         href: "/master/cost-configuration",
+        icon: Coins,
         roles: SPV_ONLY,
       },
-      { label: "Promo Templates", href: "/master/templates", roles: SPV_ONLY },
+      { label: "Templates", href: "/master/templates", icon: LayoutTemplate, roles: SPV_ONLY },
     ],
   },
   {
     label: "Reports",
     items: [
-      { label: "Campaign History", href: "/reports/campaign-history" },
-      { label: "Promo History", href: "/reports/promo-history" },
-      { label: "Approval History", href: "/reports/approval-history" },
+      { label: "Campaign History", href: "/reports/campaign-history", icon: History },
+      { label: "Promo History", href: "/reports/promo-history", icon: History },
+      { label: "Approval History", href: "/reports/approval-history", icon: ClipboardCheck },
     ],
   },
   {
-    // Settings → Brand Management is a configuration module — hidden for Admin.
     label: "Settings",
     items: [
       {
         label: "Brand Management",
         href: "/settings/brand-management",
+        icon: Building2,
         roles: SPV_ONLY,
       },
     ],
