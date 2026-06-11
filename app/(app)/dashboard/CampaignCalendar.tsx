@@ -166,22 +166,26 @@ export function CampaignCalendar({ campaigns }: CampaignCalendarProps) {
               onClick={() => setSelectedDay(isSelected ? null : key)}
             >
               <span className="pms-calendar__date">{day.getDate()}</span>
-              <span className="pms-calendar__events">
-                {dayCampaigns.slice(0, 3).map((campaign) => (
-                  <span
-                    key={campaign.id}
-                    className="pms-calendar__event"
-                    title={campaign.name}
-                  >
-                    {campaign.name}
+              {dayCampaigns.length > 0 && (
+                <span className="pms-calendar__dots">
+                  {dayCampaigns.slice(0, 3).map((campaign) => (
+                    <span
+                      key={campaign.id}
+                      className="pms-calendar__dot"
+                      title={campaign.name}
+                      aria-hidden="true"
+                    />
+                  ))}
+                  {dayCampaigns.length > 3 && (
+                    <span className="pms-calendar__more">
+                      +{dayCampaigns.length - 3}
+                    </span>
+                  )}
+                  <span className="pms-calendar__sr">
+                    {dayCampaigns.length} campaign
                   </span>
-                ))}
-                {dayCampaigns.length > 3 && (
-                  <span className="pms-calendar__more">
-                    +{dayCampaigns.length - 3} lagi
-                  </span>
-                )}
-              </span>
+                </span>
+              )}
             </button>
           );
         })}
