@@ -10,6 +10,7 @@
 
 import type {
   ApprovalHistoryEntry,
+  Attachment,
   Brand,
   BrandStatus,
   Campaign,
@@ -31,6 +32,7 @@ import {
 } from "../errors";
 import type {
   ApprovalHistoryRepository,
+  AttachmentRepository,
   BrandRepository,
   CampaignRepository,
   CostConfigurationRepository,
@@ -448,5 +450,36 @@ export class InMemoryExecutionStatusRepository implements ExecutionStatusReposit
     const updated: PromoScenario = clone(promo);
     updated.executionStatus = status;
     this.store.data.promos.set(promoRef, updated);
+  }
+}
+
+export class InMemoryAttachmentRepository implements AttachmentRepository {
+  constructor(private readonly store: InMemoryStore) {}
+
+  async findById(id: string): Promise<Attachment | null> {
+    const found = this.store.data.attachments.get(id);
+    return found ? clone(found) : null;
+  }
+
+  async listByPromo(promoRef: string): Promise<Attachment[]> {
+    return [...this.store.data.attachments.values()]
+      .filter((a) => a.promoRef === promoRef)
+      .sort((a, b) => a.uploadDate.getTime() - b.uploadDate.getTime())
+      .map(clone);
+  }
+
+  async insert(attachment: Attachment): Promise<Attachment> {
+    if (!this.store.data.promos.has(attachment.promoRef)) {
+      throw new ForeignKeyError("Attachment", `Promo "${attachment.promoRef}"`);
+    }
+    this.store.data.attachments.set(attachment.id, clone(attachment));
+    return clone(attachment);
+  }
+
+  async delete(id: string): Promise<void> {
+    if (!this.store.data.attachments.has(id)) {
+      throw new NotFoundError("Attachment", id);
+    }
+    this.store.data.attachments.delete(id);
   }
 }

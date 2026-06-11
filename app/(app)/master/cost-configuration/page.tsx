@@ -1,10 +1,10 @@
-import { ModulePlaceholder } from "../../_components/ModulePlaceholder";
+import { ToastProvider } from "@ui/components";
+import { CostConfigurationView } from "./CostConfigurationView";
 
 export default function CostConfigurationPage() {
   return (
-    <ModulePlaceholder
-      title="Cost Configuration"
-      description="Per-brand cost components used by the promo simulator."
-    />
+    <ToastProvider>
+      <CostConfigurationView />
+    </ToastProvider>
   );
 }

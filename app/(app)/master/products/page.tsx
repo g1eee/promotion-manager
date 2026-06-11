@@ -1,10 +1,10 @@
-import { ModulePlaceholder } from "../../_components/ModulePlaceholder";
+import { ToastProvider } from "@ui/components";
+import { ProductMasterView } from "./ProductMasterView";
 
 export default function ProductMasterPage() {
   return (
-    <ModulePlaceholder
-      title="Product Master"
-      description="Per-brand product catalog with import, search, and lifecycle management."
-    />
+    <ToastProvider>
+      <ProductMasterView />
+    </ToastProvider>
   );
 }

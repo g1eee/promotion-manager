@@ -7,6 +7,7 @@ export type { StoreData } from "./store";
 export { InMemoryPersistence } from "./persistence";
 export {
   InMemoryApprovalHistoryRepository,
+  InMemoryAttachmentRepository,
   InMemoryBrandRepository,
   InMemoryCampaignRepository,
   InMemoryCostConfigurationRepository,

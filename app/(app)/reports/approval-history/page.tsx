@@ -1,10 +1,5 @@
-import { ModulePlaceholder } from "../../_components/ModulePlaceholder";
+import { ApprovalHistoryView } from "./ApprovalHistoryView";
 
 export default function ApprovalHistoryPage() {
-  return (
-    <ModulePlaceholder
-      title="Approval History"
-      description="Audit log of promo approval status changes."
-    />
-  );
+  return <ApprovalHistoryView />;
 }

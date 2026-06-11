@@ -1,10 +1,5 @@
-import { ModulePlaceholder } from "../../_components/ModulePlaceholder";
+import { CampaignHistoryView } from "./CampaignHistoryView";
 
 export default function CampaignHistoryPage() {
-  return (
-    <ModulePlaceholder
-      title="Campaign History"
-      description="Historical campaign records with brand-scoped filtering."
-    />
-  );
+  return <CampaignHistoryView />;
 }

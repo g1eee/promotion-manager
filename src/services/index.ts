@@ -49,6 +49,7 @@ export { CampaignService } from "./campaign-service";
 export type {
   CampaignServiceDeps,
   CreateCampaignInput,
+  CreateInlineCampaignInput,
   UpdateCampaignChanges,
 } from "./campaign-service";
 
@@ -56,4 +57,96 @@ export { PromoService } from "./promo-service";
 export type {
   PromoServiceDeps,
   CreatePromoInput,
+  CreatePromoWithInlineCampaignInput,
+  CreateRuleInput,
+  PromoProductSelection,
+  UpdatePromoChanges,
 } from "./promo-service";
+
+export { PromoCloneService } from "./promo-clone-service";
+export type { PromoCloneServiceDeps } from "./promo-clone-service";
+
+export { PromoSimulatorService } from "./promo-simulator-service";
+export type {
+  PromoSimulationResult,
+  PromoSimulatorCostConfigReader,
+  PromoSimulatorServiceDeps,
+  PromoSimulatorSummary,
+  SimulatePromoInput,
+  SimulatedPromoRow,
+} from "./promo-simulator-service";
+
+export { ApprovalService } from "./approval-service";
+export type {
+  ApprovalServiceDeps,
+  ChangeApprovalStatusInput,
+} from "./approval-service";
+
+export {
+  AdminExecutionBoard,
+  ExecutionStatusService,
+} from "./promo-execution-service";
+export type {
+  AdminExecutionBoardDeps,
+  ApprovedPromoListItem,
+  ApprovedPromoProduct,
+  ExecutionStatusServiceDeps,
+  UpdateExecutionStatusInput,
+} from "./promo-execution-service";
+
+export { PromoHistoryService } from "./promo-history-service";
+export type {
+  PromoHistoryItem,
+  PromoHistorySearch,
+  PromoHistoryServiceDeps,
+} from "./promo-history-service";
+
+export { FeedbackService } from "./feedback-service";
+export type {
+  AddFeedbackInput,
+  FeedbackServiceDeps,
+} from "./feedback-service";
+
+export { ApprovalHistoryService } from "./approval-history-service";
+export type {
+  ApprovalHistoryItem,
+  ApprovalHistoryServiceDeps,
+} from "./approval-history-service";
+
+export { PromoTemplateService, BUILT_IN_TEMPLATES } from "./promo-template-service";
+export type {
+  PromoTemplateInput,
+  PromoTemplateServiceDeps,
+} from "./promo-template-service";
+
+export { CampaignHistoryService } from "./campaign-history-service";
+export type {
+  CampaignHistoryFilter,
+  CampaignHistoryItem,
+  CampaignHistoryServiceDeps,
+} from "./campaign-history-service";
+
+export { AttachmentService, FeatureDisabledError } from "./attachment-service";
+export type {
+  AttachmentServiceDeps,
+  UploadAttachmentInput,
+} from "./attachment-service";
+
+export { CombinedPromoExecutionService } from "./combined-execution-service";
+export type {
+  CombinedExecutionRow,
+  CombinedPromoExecutionServiceDeps,
+} from "./combined-execution-service";
+
+export { DashboardService } from "./dashboard-service";
+export type {
+  DashboardRecentActivity,
+  DashboardServiceDeps,
+  DashboardSummary,
+  DashboardSummaryQuery,
+  DashboardWidgets,
+  DashboardWorkQueue,
+  RecentApprovalActivity,
+  RecentCampaignActivity,
+  RecentPromoActivity,
+} from "./dashboard-service";

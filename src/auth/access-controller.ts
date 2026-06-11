@@ -57,6 +57,12 @@ export enum AccessResource {
    * {@link authorizeAdminMarketplace}).
    */
   Brand = "Brand",
+  /**
+   * Execution_Status (Req 18). Not one of the five SPV-controlled
+   * configuration/write resources; Admin_Marketplace may update it from the
+   * simplified Promo Execution board.
+   */
+  ExecutionStatus = "Execution_Status",
 }
 
 /**
@@ -148,6 +154,15 @@ function authorizeAdminMarketplace(
   // (AdminExecutionBoard.list, Task 15), not by this resource-level decision.
   if (resource === AccessResource.PromoScenario && action === AccessAction.Read) {
     return Allow;
+  }
+
+  // Admin operates the execution board by reading/updating Execution_Status
+  // for Approved promos (Req 18.2/18.3). The data layer enforces Approved-only.
+  if (resource === AccessResource.ExecutionStatus) {
+    if (action === AccessAction.Read || action === AccessAction.Update) {
+      return Allow;
+    }
+    return Deny(accessDeniedMessage(action, resource));
   }
 
   // Everything else is denied — including all writes on the five controlled

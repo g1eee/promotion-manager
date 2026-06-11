@@ -339,8 +339,9 @@ export class ProductService {
   async update(
     id: string,
     input: UpdateProductInput,
-    _actor: string,
+    actor: string,
   ): Promise<Product> {
+    void actor;
     const existing = await this.deps.products.findById(id);
     if (!existing) {
       throw productNotFoundError(id);
@@ -398,7 +399,8 @@ export class ProductService {
    *
    * @throws {ValidationError} when no Product has the given surrogate id.
    */
-  async archive(id: string, _actor: string): Promise<Product> {
+  async archive(id: string, actor: string): Promise<Product> {
+    void actor;
     const existing = await this.deps.products.findById(id);
     if (!existing) {
       throw productNotFoundError(id);
@@ -424,7 +426,8 @@ export class ProductService {
    * @throws {ValidationError} when the Product is missing, or when it is still
    *   referenced by a promo (with guidance to Archive instead).
    */
-  async delete(id: string, _actor: string): Promise<void> {
+  async delete(id: string, actor: string): Promise<void> {
+    void actor;
     const existing = await this.deps.products.findById(id);
     if (!existing) {
       throw productNotFoundError(id);

@@ -14,6 +14,7 @@
 
 import type {
   ApprovalHistoryRepository,
+  AttachmentRepository,
   BrandRepository,
   CampaignRepository,
   CostConfigurationRepository,
@@ -35,6 +36,7 @@ export interface UnitOfWork {
   readonly feedback: FeedbackRecordRepository;
   readonly approvalHistory: ApprovalHistoryRepository;
   readonly executionStatus: ExecutionStatusRepository;
+  readonly attachments: AttachmentRepository;
 }
 
 /** Runs a unit of work atomically with commit-on-success / rollback-on-error. */

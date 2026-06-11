@@ -14,6 +14,7 @@
 
 import type {
   ApprovalHistoryEntry,
+  Attachment,
   Brand,
   Campaign,
   CostConfiguration,
@@ -38,6 +39,7 @@ export interface StoreData {
   promoTemplates: Map<string, PromoTemplate>;
   feedback: Map<string, FeedbackRecord>;
   approvalHistory: Map<string, ApprovalHistoryEntry>;
+  attachments: Map<string, Attachment>;
 }
 
 function emptyData(): StoreData {
@@ -50,6 +52,7 @@ function emptyData(): StoreData {
     promoTemplates: new Map(),
     feedback: new Map(),
     approvalHistory: new Map(),
+    attachments: new Map(),
   };
 }
 
@@ -72,6 +75,7 @@ export class InMemoryStore {
       promoTemplates: cloneMap(this.data.promoTemplates),
       feedback: cloneMap(this.data.feedback),
       approvalHistory: cloneMap(this.data.approvalHistory),
+      attachments: cloneMap(this.data.attachments),
     };
   }
 

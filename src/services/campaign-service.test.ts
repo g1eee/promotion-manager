@@ -269,7 +269,7 @@ describe("CampaignService system vs validation error distinction (Req 6.14)", ()
         },
       };
       const service = new CampaignService({
-        campaigns: failingCampaigns as typeof persistence.campaigns,
+        campaigns: failingCampaigns as unknown as typeof persistence.campaigns,
         brands: persistence.brands,
       });
 

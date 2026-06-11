@@ -24,14 +24,30 @@
  * a database-backed adapter later without code changes.
  */
 
-import { PromoStatus, PromoType } from "../domain";
-import type { ProductRef, PromoScenario, Rule } from "../domain";
+import {
+  BenefitType,
+  ProductSelection,
+  ProductSelectionError,
+  PromoStatus,
+  PromoType,
+  RuleBuilder,
+  RuleValidationError,
+} from "../domain";
+import type {
+  BulkAddResult,
+  Product,
+  ProductRef,
+  ProductSelectionItem,
+  PromoScenario,
+  Rule,
+} from "../domain";
 import type {
   BrandRepository,
   CampaignRepository,
+  ProductRepository,
   PromoScenarioRepository,
 } from "../persistence";
-import { ForeignKeyError } from "../persistence";
+import { ForeignKeyError, NotFoundError } from "../persistence";
 import {
   CampaignService,
   type CreateInlineCampaignInput,
@@ -67,11 +83,36 @@ export type CreatePromoWithInlineCampaignInput = Omit<
   "campaignId"
 >;
 
+/** Mutable Basic Information fields for an existing Promo_Scenario (Req 7.9). */
+export interface UpdatePromoChanges {
+  brandId?: string;
+  campaignId?: string;
+  namaPromo?: string;
+  promoType?: PromoType;
+  tanggalMulai?: Date;
+  tanggalSelesai?: Date;
+}
+
+/** Rule fields supplied by the Dynamic Rule Builder UI/API (Req 8.1). */
+export interface CreateRuleInput {
+  minQuantity: number;
+  benefitType: BenefitType;
+  discountPercent?: number | null;
+  gift?: string | null;
+}
+
+/** Product selection projection for a Promo_Scenario (Req 9.1, 9.14). */
+export interface PromoProductSelection {
+  selected: ProductSelectionItem[];
+  selectable: Product[];
+}
+
 /** Repository ports required by {@link PromoService}. */
 export interface PromoServiceDeps {
   readonly promos: PromoScenarioRepository;
   readonly campaigns: CampaignRepository;
   readonly brands: BrandRepository;
+  readonly products: ProductRepository;
 }
 
 /** Final, trimmed/normalized Promo field values fed to validation. */
@@ -111,6 +152,14 @@ function isValidDate(value: unknown): value is Date {
   return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
+function mapRuleValidation(error: RuleValidationError): ValidationError {
+  return new ValidationError(error.message, error.fields);
+}
+
+function mapProductSelection(error: ProductSelectionError): ValidationError {
+  return new ValidationError(error.message, error.fields);
+}
+
 export class PromoService {
   constructor(private readonly deps: PromoServiceDeps) {}
 
@@ -121,6 +170,15 @@ export class PromoService {
     status?: PromoStatus;
   }): Promise<PromoScenario[]> {
     return this.deps.promos.list(filter);
+  }
+
+  /** Return one Promo_Scenario or raise a not-found error. */
+  async get(id: string): Promise<PromoScenario> {
+    const promo = await this.deps.promos.findById(id);
+    if (!promo) {
+      throw new NotFoundError("PromoScenario", id);
+    }
+    return promo;
   }
 
   /**
@@ -245,6 +303,200 @@ export class PromoService {
   }
 
   /**
+   * Edit Promo_Scenario Basic Information (Req 7.9): changes are saved only
+   * when the merged state is valid; invalid input rejects before persistence so
+   * the previous promo stays intact (Req 7.10). Audit creation fields remain
+   * immutable while `updatedAt` advances (Req 7.11, 23.3, 23.4).
+   */
+  async update(
+    id: string,
+    changes: UpdatePromoChanges,
+  ): Promise<PromoScenario> {
+    const existing = await this.get(id);
+    const values = this.normalize({
+      brandId: changes.brandId ?? existing.brandId,
+      campaignId: changes.campaignId ?? existing.campaignId,
+      namaPromo: changes.namaPromo ?? existing.namaPromo,
+      promoType: changes.promoType ?? existing.promoType,
+      tanggalMulai: changes.tanggalMulai ?? existing.tanggalMulai,
+      tanggalSelesai: changes.tanggalSelesai ?? existing.tanggalSelesai,
+    });
+    this.assertValidFields(values);
+
+    const campaign = await this.deps.campaigns.findById(values.campaignId);
+    if (!campaign) {
+      throw invalidCampaignError();
+    }
+    const brand = await this.deps.brands.findById(values.brandId);
+    if (!brand) {
+      throw invalidBrandError();
+    }
+    if (campaign.brandId !== values.brandId) {
+      throw brandMismatchError();
+    }
+
+    const updated: PromoScenario = {
+      ...existing,
+      brandId: values.brandId,
+      campaignId: values.campaignId,
+      namaPromo: values.namaPromo,
+      promoType: values.promoType,
+      tanggalMulai: values.tanggalMulai,
+      tanggalSelesai: values.tanggalSelesai,
+      updatedAt: new Date(),
+    };
+
+    try {
+      return await this.deps.promos.update(updated);
+    } catch (error) {
+      if (error instanceof ForeignKeyError) {
+        if (error.message.includes("Campaign")) {
+          throw invalidCampaignError();
+        }
+        throw invalidBrandError();
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Add one Dynamic Rule to a Promo_Scenario (Req 8.1, 8.2). The domain
+   * RuleBuilder enforces minQuantity >= 1 (Req 8.3); this service validates the
+   * benefit payload before persisting the updated promo.
+   */
+  async addRule(id: string, input: CreateRuleInput): Promise<PromoScenario> {
+    const existing = await this.get(id);
+    const rule = this.normalizeRule(input);
+
+    try {
+      const withRule = RuleBuilder.addRule(existing, rule);
+      return await this.deps.promos.update({
+        ...withRule,
+        updatedAt: new Date(),
+      });
+    } catch (error) {
+      if (error instanceof RuleValidationError) {
+        throw mapRuleValidation(error);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Remove one Dynamic Rule from a Promo_Scenario (Req 8.4). Removing a missing
+   * id is a no-op, matching the pure RuleBuilder behavior.
+   */
+  async removeRule(id: string, ruleId: string): Promise<PromoScenario> {
+    const existing = await this.get(id);
+    const withoutRule = RuleBuilder.removeRule(existing, ruleId);
+    return this.deps.promos.update({
+      ...withoutRule,
+      updatedAt: new Date(),
+    });
+  }
+
+  /** List selected products and selectable candidates for a promo (Req 9.1, 9.5, 9.11, 9.14). */
+  async productSelection(
+    id: string,
+    criteria: { keyword?: string } = {},
+  ): Promise<PromoProductSelection> {
+    const promo = await this.get(id);
+    const catalogue = await this.deps.products.list();
+    const selected = ProductSelection.resolveSelectedItems(
+      promo.productRefs,
+      catalogue,
+    );
+    const keyword =
+      typeof criteria.keyword === "string" ? criteria.keyword.trim() : "";
+    const needle = keyword.toLowerCase();
+    const selectable = ProductSelection.selectableProducts(
+      catalogue,
+      promo.brandId,
+    ).filter((product) =>
+      needle === ""
+        ? true
+        : product.productId.toLowerCase().includes(needle) ||
+          product.namaProduk.toLowerCase().includes(needle),
+    );
+    return { selected, selectable };
+  }
+
+  /** Add one or many Product_Master products to a promo by Product ID (Req 9.2, 9.7). */
+  async addProductsById(
+    id: string,
+    productIds: readonly string[],
+  ): Promise<PromoScenario> {
+    const promo = await this.get(id);
+    const products: Product[] = [];
+    for (const productId of productIds) {
+      const matches = await this.deps.products.findByProductId(productId.trim());
+      const product = matches.find((candidate) => candidate.brandId === promo.brandId);
+      if (!product) {
+        throw new ValidationError("Produk tidak ditemukan.", {
+          productIds: `Product ID "${productId}" tidak ditemukan pada Brand promo.`,
+        });
+      }
+      products.push(product);
+    }
+
+    try {
+      const productRefs = ProductSelection.addProducts(
+        promo.productRefs,
+        products,
+        promo.brandId,
+      );
+      return this.deps.promos.update({
+        ...promo,
+        productRefs,
+        updatedAt: new Date(),
+      });
+    } catch (error) {
+      if (error instanceof ProductSelectionError) {
+        throw mapProductSelection(error);
+      }
+      throw error;
+    }
+  }
+
+  /** Bulk paste Product IDs, persist added refs, and return the partition report (Req 9.6, 9.8, 9.9). */
+  async bulkAddProductsById(
+    id: string,
+    productIds: readonly string[],
+  ): Promise<{ promo: PromoScenario; result: BulkAddResult }> {
+    const promo = await this.get(id);
+    const catalogue = await this.deps.products.list();
+    const result = ProductSelection.bulkAddByProductIds(
+      promo.productRefs,
+      productIds,
+      catalogue,
+      promo.brandId,
+    );
+    const updated = await this.deps.promos.update({
+      ...promo,
+      productRefs: result.refs,
+      updatedAt: new Date(),
+    });
+    return { promo: updated, result: { ...result, refs: updated.productRefs } };
+  }
+
+  /** Remove one selected product reference from a promo (Req 9.4). */
+  async removeProduct(
+    id: string,
+    productId: string,
+  ): Promise<PromoScenario> {
+    const promo = await this.get(id);
+    const productRefs = ProductSelection.removeProduct(promo.productRefs, {
+      brandId: promo.brandId,
+      productId,
+    });
+    return this.deps.promos.update({
+      ...promo,
+      productRefs,
+      updatedAt: new Date(),
+    });
+  }
+
+  /**
    * Trim string fields so leading/trailing whitespace never satisfies a
    * required-field check, and carry the date/type values through untouched for
    * validation.
@@ -259,6 +511,53 @@ export class PromoService {
       promoType: input.promoType,
       tanggalMulai: input.tanggalMulai,
       tanggalSelesai: input.tanggalSelesai,
+    };
+  }
+
+  private normalizeRule(input: CreateRuleInput): Rule {
+    const minQuantity = Number(input.minQuantity);
+    const benefitType = input.benefitType;
+    const discountPercent =
+      input.discountPercent === undefined || input.discountPercent === null
+        ? null
+        : Number(input.discountPercent);
+    const gift =
+      typeof input.gift === "string" ? input.gift.trim() : input.gift ?? null;
+
+    const fields: Record<string, string> = {};
+    if (!Object.values(BenefitType).includes(benefitType)) {
+      fields.benefitType =
+        "Benefit harus berupa DiscountPercent atau FreeGift.";
+    }
+
+    if (benefitType === BenefitType.DiscountPercent) {
+      if (
+        discountPercent === null ||
+        !Number.isFinite(discountPercent) ||
+        discountPercent < 0 ||
+        discountPercent > 100
+      ) {
+        fields.discountPercent = "Diskon harus berada dalam rentang 0-100%.";
+      }
+    }
+
+    if (benefitType === BenefitType.FreeGift) {
+      if (typeof gift !== "string" || gift === "") {
+        fields.gift = "Free gift wajib diisi.";
+      }
+    }
+
+    if (Object.keys(fields).length > 0) {
+      throw new ValidationError("Data Rule tidak valid.", fields);
+    }
+
+    return {
+      id: crypto.randomUUID(),
+      minQuantity,
+      benefitType,
+      discountPercent:
+        benefitType === BenefitType.DiscountPercent ? discountPercent : null,
+      gift: benefitType === BenefitType.FreeGift ? gift : null,
     };
   }
 
