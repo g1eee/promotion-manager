@@ -134,6 +134,17 @@ export interface ActiveCampaignCard {
   readonly daysUntilEnd: number;
 }
 
+/** A campaign projected for the dashboard calendar (full date range). */
+export interface CalendarCampaign {
+  readonly id: string;
+  readonly name: string;
+  readonly brandId: string;
+  readonly brandName: string;
+  readonly status: string;
+  readonly startsAt: Date;
+  readonly endsAt: Date;
+}
+
 export interface DashboardSummary {
   readonly brandId: string | null;
   readonly brandName: string | null;
@@ -142,6 +153,7 @@ export interface DashboardSummary {
   readonly recentActivity: DashboardRecentActivity;
   readonly upcomingPromos: UpcomingPromo[];
   readonly activeCampaigns: ActiveCampaignCard[];
+  readonly calendarCampaigns: CalendarCampaign[];
   readonly recomputedAt: Date;
 }
 
@@ -244,6 +256,7 @@ export class DashboardService {
         promoCountByCampaign,
         now,
       }),
+      calendarCampaigns: this.calendarCampaigns(campaigns, brandById),
       recomputedAt: new Date(),
     };
   }
@@ -276,6 +289,7 @@ export class DashboardService {
       },
       upcomingPromos: [],
       activeCampaigns: [],
+      calendarCampaigns: [],
       recomputedAt: new Date(),
     };
   }
@@ -441,6 +455,24 @@ export class DashboardService {
           daysUntilEnd: this.daysBetween(input.now, campaign.tanggalSelesai),
         };
       });
+  }
+
+  private calendarCampaigns(
+    campaigns: readonly Campaign[],
+    brandById: ReadonlyMap<string, Brand>,
+  ): CalendarCampaign[] {
+    return campaigns.map((campaign) => {
+      const brand = brandById.get(campaign.brandId);
+      return {
+        id: campaign.id,
+        name: campaign.nama,
+        brandId: campaign.brandId,
+        brandName: brand?.displayName ?? campaign.brandId,
+        status: campaign.status,
+        startsAt: campaign.tanggalMulai,
+        endsAt: campaign.tanggalSelesai,
+      };
+    });
   }
 
   private recentActivity(input: {
