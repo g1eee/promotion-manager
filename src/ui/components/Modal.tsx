@@ -43,6 +43,14 @@ export function Modal({
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
+  // Keep the latest onClose in a ref so the focus/keydown effect does not
+  // re-run (and steal focus from inputs) when the parent passes a new inline
+  // onClose identity on every render.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -52,7 +60,7 @@ export function Modal({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
       }
     };
 
@@ -60,14 +68,15 @@ export function Modal({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Move focus into the dialog for keyboard users.
+    // Move focus into the dialog for keyboard users — only when the modal
+    // transitions to open, never on subsequent re-renders.
     dialogRef.current?.focus();
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, onClose]);
+  }, [open]);
 
   const handleOverlayClick = useCallback(() => {
     if (!disableOverlayClose) {
