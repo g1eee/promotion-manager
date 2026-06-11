@@ -42,17 +42,17 @@ vi.mock("next/link", () => ({
 /** Labels that only SPV_Marketing may see (hidden in the Admin interface). */
 const SPV_ONLY_LABELS = [
   "Campaigns",
-  "Promo Scenarios",
-  "Product Master",
-  "Cost Configuration",
-  "Promo Templates",
+  "Promos",
+  "Products",
+  "Costs",
+  "Templates",
   "Brand Management",
 ];
 
 /** Labels visible to every role. */
 const SHARED_LABELS = [
-  "Dashboard",
-  "Promo Execution",
+  "Home",
+  "Execution",
   "Campaign History",
   "Promo History",
   "Approval History",
@@ -79,8 +79,8 @@ describe("nav-config role visibility", () => {
     for (const hidden of SPV_ONLY_LABELS) {
       expect(adminLabels).not.toContain(hidden);
     }
-    expect(adminLabels).toContain("Promo Execution");
-    expect(adminLabels).toContain("Dashboard");
+    expect(adminLabels).toContain("Execution");
+    expect(adminLabels).toContain("Home");
   });
 
   it("drops groups left empty after filtering for Admin_Marketplace", () => {
@@ -94,7 +94,7 @@ describe("nav-config role visibility", () => {
   });
 
   it("isNavItemVisible treats role-less items as visible to every role", () => {
-    const sharedItem = { label: "Dashboard", href: "/dashboard" };
+    const sharedItem = { label: "Home", href: "/dashboard" };
     const restrictedItem = {
       label: "Brand Management",
       href: "/settings/brand-management",
@@ -140,10 +140,10 @@ describe("Sidebar rendering", () => {
   it("marks the active route based on the current pathname", () => {
     render(<Sidebar role={Role.SPV_Marketing} />);
 
-    const activeLink = screen.getByRole("link", { name: "Promo Execution" });
+    const activeLink = screen.getByRole("link", { name: "Execution" });
     expect(activeLink).toHaveAttribute("aria-current", "page");
 
-    const inactiveLink = screen.getByRole("link", { name: "Dashboard" });
+    const inactiveLink = screen.getByRole("link", { name: "Home" });
     expect(inactiveLink).not.toHaveAttribute("aria-current");
   });
 });

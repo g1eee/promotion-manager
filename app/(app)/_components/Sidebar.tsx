@@ -57,6 +57,7 @@ export function Sidebar({ role = Role.SPV_Marketing }: SidebarProps) {
           <ul className="pms-nav-group__list">
             {group.items.map((item) => {
               const active = isActive(item.href);
+              const Icon = item.icon;
               return (
                 <li key={item.href}>
                   <Link
@@ -68,7 +69,14 @@ export function Sidebar({ role = Role.SPV_Marketing }: SidebarProps) {
                     aria-current={active ? "page" : undefined}
                     data-initial={item.label.charAt(0).toUpperCase()}
                   >
-                    {item.label}
+                    {Icon && (
+                      <Icon
+                        className="pms-nav-link__icon"
+                        size={16}
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="pms-nav-link__text">{item.label}</span>
                   </Link>
                 </li>
               );

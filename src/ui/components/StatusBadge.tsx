@@ -9,20 +9,22 @@ import type { BadgeProps, BadgeTone } from "./Badge";
 const STATUS_TONE: Record<string, BadgeTone> = {
   // Promo / campaign status
   draft: "neutral",
-  review: "info",
+  review: "warning",
   approved: "success",
   rejected: "danger",
-  active: "secondary",
+  active: "success",
   completed: "neutral",
   archived: "neutral",
   inactive: "neutral",
   // Execution status
-  "sent to admin": "info",
-  "marketplace setup": "warning",
+  "sent to admin": "execution",
+  "marketplace setup": "execution",
   // Margin health
   healthy: "success",
   warning: "warning",
   risky: "danger",
+  // Feedback
+  feedback: "feedback",
 };
 
 export interface StatusBadgeProps extends Omit<BadgeProps, "children" | "tone"> {

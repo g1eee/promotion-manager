@@ -7,43 +7,47 @@
  */
 
 :root {
-  /* Colors — indigo primary + cyan secondary (PRD palette). */
-  --pms-color-primary: #4f46e5;
-  --pms-color-primary-hover: #4338ca;
-  --pms-color-primary-active: #3730a3;
-  --pms-color-primary-subtle: #eef0ff;
+  /* Colors — dark Command Center palette (Linear/Vercel-inspired). */
+  --pms-color-primary: #6366f1;
+  --pms-color-primary-hover: #818cf8;
+  --pms-color-primary-active: #4f46e5;
+  --pms-color-primary-subtle: #1e213a;
 
-  --pms-color-secondary: #06b6d4;
-  --pms-color-secondary-hover: #0891b2;
-  --pms-color-secondary-subtle: #cffafe;
+  --pms-color-secondary: #3b82f6;
+  --pms-color-secondary-hover: #60a5fa;
+  --pms-color-secondary-subtle: #15233f;
 
-  --pms-color-bg: #f8fafc;
-  --pms-color-surface: #ffffff;
-  --pms-color-surface-alt: #f1f5f9;
-  --pms-color-border: #e2e8f0;
-  --pms-color-border-strong: #cbd5e1;
+  --pms-color-bg: #0b0f14;
+  --pms-color-surface: #111827;
+  --pms-color-surface-alt: #161e2e;
+  --pms-color-border: #1f2937;
+  --pms-color-border-strong: #2c3a4f;
 
-  --pms-color-text-primary: #0f172a;
-  --pms-color-text-secondary: #64748b;
-  --pms-color-text-muted: #94a3b8;
-  --pms-color-text-inverse: #ffffff;
+  --pms-color-text-primary: #e5e7eb;
+  --pms-color-text-secondary: #9ca3af;
+  --pms-color-text-muted: #6b7280;
+  --pms-color-text-inverse: #0b0f14;
 
-  --pms-color-success: #059669;
-  --pms-color-success-subtle: #d1fae5;
-  --pms-color-warning: #b45309;
-  --pms-color-warning-subtle: #fef3c7;
-  --pms-color-danger: #dc2626;
-  --pms-color-danger-subtle: #fee2e2;
-  --pms-color-info: #0e7490;
-  --pms-color-info-subtle: #cffafe;
-  --pms-color-neutral: #64748b;
-  --pms-color-neutral-subtle: #eef2f7;
+  --pms-color-success: #22c55e;
+  --pms-color-success-subtle: #0f2a1a;
+  --pms-color-warning: #f59e0b;
+  --pms-color-warning-subtle: #2c2410;
+  --pms-color-danger: #ef4444;
+  --pms-color-danger-subtle: #2c1518;
+  --pms-color-info: #3b82f6;
+  --pms-color-info-subtle: #15233f;
+  --pms-color-feedback: #8b5cf6;
+  --pms-color-feedback-subtle: #211a3a;
+  --pms-color-execution: #3b82f6;
+  --pms-color-execution-subtle: #15233f;
+  --pms-color-neutral: #9ca3af;
+  --pms-color-neutral-subtle: #1b2433;
 
   --pms-color-focus-ring: #6366f1;
-  --pms-color-overlay: rgba(15, 23, 42, 0.55);
+  --pms-color-overlay: rgba(3, 6, 12, 0.72);
 
   /* Brand gradient (signature accent). */
-  --pms-gradient-brand: linear-gradient(135deg, #4f46e5 0%, #6d28d9 50%, #06b6d4 100%);
+  --pms-gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #3b82f6 100%);
 
   /* Spacing */
   --pms-space-none: 0;
@@ -81,19 +85,16 @@
   --pms-line-height-normal: 1.5;
   --pms-line-height-relaxed: 1.65;
 
-  /* Radius — slightly softer for a modern, less utilitarian feel. */
-  --pms-radius-sm: 6px;
-  --pms-radius-md: 9px;
-  --pms-radius-lg: 14px;
+  /* Radius — 12px system per revamp PRD. */
+  --pms-radius-sm: 8px;
+  --pms-radius-md: 10px;
+  --pms-radius-lg: 12px;
   --pms-radius-pill: 999px;
 
-  /* Shadow — layered, low-spread for crisp depth on light surfaces. */
-  --pms-shadow-sm: 0 1px 2px rgba(20, 21, 42, 0.06),
-    0 1px 3px rgba(20, 21, 42, 0.04);
-  --pms-shadow-md: 0 4px 12px rgba(20, 21, 42, 0.08),
-    0 2px 4px rgba(20, 21, 42, 0.04);
-  --pms-shadow-lg: 0 16px 40px rgba(20, 21, 42, 0.16),
-    0 4px 12px rgba(20, 21, 42, 0.08);
+  /* Shadow — minimal, near-flat (Vercel-style) on dark surfaces. */
+  --pms-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --pms-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --pms-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
 
   /* Z-index */
   --pms-z-dropdown: 1000;
@@ -124,10 +125,10 @@ body {
   background-color: var(--pms-color-bg);
   background-image: radial-gradient(
       circle at 0% 0%,
-      rgba(79, 70, 229, 0.05),
-      transparent 38%
+      rgba(99, 102, 241, 0.08),
+      transparent 40%
     ),
-    radial-gradient(circle at 100% 0%, rgba(6, 182, 212, 0.05), transparent 42%);
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.06), transparent 44%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -536,6 +537,14 @@ textarea.pms-control {
   background-color: var(--pms-color-danger-subtle);
   color: var(--pms-color-danger);
 }
+.pms-badge--feedback {
+  background-color: var(--pms-color-feedback-subtle);
+  color: var(--pms-color-feedback);
+}
+.pms-badge--execution {
+  background-color: var(--pms-color-execution-subtle);
+  color: var(--pms-color-execution);
+}
 
 /* ---------- Card ---------- */
 
@@ -784,14 +793,11 @@ textarea.pms-control {
   align-items: center;
 }
 .pms-shell--collapsed .pms-nav-link {
-  text-align: center;
+  justify-content: center;
   padding: var(--pms-space-sm) 0;
-  font-size: 0;
 }
-.pms-shell--collapsed .pms-nav-link::after {
-  content: attr(data-initial);
-  font-size: var(--pms-font-size-md);
-  font-weight: var(--pms-font-weight-semibold);
+.pms-shell--collapsed .pms-nav-link__text {
+  display: none;
 }
 .pms-shell--collapsed .pms-nav-link--active::before {
   display: none;
@@ -1073,7 +1079,9 @@ textarea.pms-control {
 
 .pms-nav-link {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--pms-space-sm);
   padding: var(--pms-space-sm) var(--pms-space-md);
   border-radius: var(--pms-radius-md);
   color: var(--pms-color-text-secondary);
@@ -1082,14 +1090,25 @@ textarea.pms-control {
   font-weight: var(--pms-font-weight-medium);
   transition: background-color 0.12s ease, color 0.12s ease;
 }
+.pms-nav-link__icon {
+  flex-shrink: 0;
+  color: var(--pms-color-text-muted);
+  transition: color 0.12s ease;
+}
 .pms-nav-link:hover {
   background-color: var(--pms-color-surface-alt);
   color: var(--pms-color-text-primary);
 }
+.pms-nav-link:hover .pms-nav-link__icon {
+  color: var(--pms-color-text-secondary);
+}
 .pms-nav-link--active {
   background-color: var(--pms-color-primary-subtle);
-  color: var(--pms-color-primary);
+  color: var(--pms-color-primary-hover);
   font-weight: var(--pms-font-weight-semibold);
+}
+.pms-nav-link--active .pms-nav-link__icon {
+  color: var(--pms-color-primary-hover);
 }
 .pms-nav-link--active::before {
   content: "";
