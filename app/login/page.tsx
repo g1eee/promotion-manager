@@ -25,7 +25,31 @@ export default async function LoginPage({
 
   return (
     <main className="pms-login">
-      <LoginForm callbackUrl={callbackUrl} />
+      <aside className="pms-login__aside">
+        <div className="pms-login__aside-brand">
+          <span className="pms-login__aside-mark">PMS</span>
+          <span>Promotion Manager</span>
+        </div>
+        <div>
+          <h2 className="pms-login__aside-headline">
+            Jalankan promo tanpa spreadsheet.
+          </h2>
+          <p className="pms-login__aside-sub">
+            Rencanakan campaign, simulasikan margin, setujui, dan eksekusi —
+            semua dalam satu konsol untuk seluruh brand Anda.
+          </p>
+          <div className="pms-login__aside-flow">
+            <span className="pms-login__aside-step">Rencana</span>
+            <span className="pms-login__aside-step">Simulasi</span>
+            <span className="pms-login__aside-step">Approval</span>
+            <span className="pms-login__aside-step">Eksekusi</span>
+          </div>
+        </div>
+        <p className="pms-login__aside-sub">Promotion Management System</p>
+      </aside>
+      <div className="pms-login__panel">
+        <LoginForm callbackUrl={callbackUrl} />
+      </div>
     </main>
   );
 }
