@@ -49,6 +49,11 @@ export interface TopBarProps {
    * injects a client-side button here so this component can stay server-side.
    */
   signOutSlot?: ReactNode;
+  /**
+   * Optional notifications control (Work Queue indicator) rendered on the
+   * right. Injected by the layout as a client component.
+   */
+  notificationSlot?: ReactNode;
 }
 
 /** First letters of up to two name parts, used for the identity avatar. */
@@ -64,6 +69,7 @@ export function TopBar({
   userRole = Role.SPV_Marketing,
   brandSelectorSlot,
   signOutSlot,
+  notificationSlot,
 }: TopBarProps = {}) {
   const roleLabel = ROLE_LABELS[userRole];
 
@@ -93,6 +99,12 @@ export function TopBar({
       </div>
 
       <div className="pms-shell__topbar-right">
+        {notificationSlot && (
+          <div className="pms-shell__slot" data-slot="notifications">
+            {notificationSlot}
+          </div>
+        )}
+
         {/* User identity + role (Req 1.1). */}
         <div
           className="pms-shell__user"
