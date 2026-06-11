@@ -140,6 +140,7 @@ export type {
 
 export { DashboardService } from "./dashboard-service";
 export type {
+  ActiveCampaignCard,
   DashboardRecentActivity,
   DashboardServiceDeps,
   DashboardSummary,
@@ -149,4 +150,5 @@ export type {
   RecentApprovalActivity,
   RecentCampaignActivity,
   RecentPromoActivity,
+  UpcomingPromo,
 } from "./dashboard-service";

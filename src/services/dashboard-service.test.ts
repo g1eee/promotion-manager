@@ -335,4 +335,76 @@ describe("DashboardService", () => {
       "Newer Promo",
     ]);
   });
+
+  it("computes the upcoming-promo timeline within the window and active-campaign cards", async () => {
+    const persistence = new InMemoryPersistence();
+    const service = serviceFor(persistence);
+    const brand = makeBrand("Delta");
+    await persistence.brands.insert(brand);
+
+    const now = new Date(Date.UTC(2026, 5, 1, 0, 0, 0));
+    const day = (n: number) => new Date(Date.UTC(2026, 5, 1 + n, 0, 0, 0));
+
+    const campaign: Campaign = {
+      id: id("campaign"),
+      brandId: brand.id,
+      nama: "June Payday",
+      tanggalMulai: day(0),
+      tanggalSelesai: day(6),
+      status: CampaignStatus.Active,
+      createdBy: "seed",
+      createdAt: day(-5),
+      updatedAt: day(-5),
+    };
+    await persistence.campaigns.insert(campaign);
+
+    function promoStarting(name: string, startOffset: number, status: PromoStatus) {
+      return persistence.promos.insert({
+        id: id("promo"),
+        brandId: brand.id,
+        campaignId: campaign.id,
+        namaPromo: name,
+        promoType: PromoType.BuyXDiscount,
+        tanggalMulai: day(startOffset),
+        tanggalSelesai: day(startOffset + 2),
+        status,
+        executionStatus: null,
+        rules: [],
+        productRefs: [],
+        createdBy: "seed",
+        createdAt: day(-3),
+        updatedAt: day(-3),
+      });
+    }
+
+    await promoStarting("Starts Today", 0, PromoStatus.Approved);
+    await promoStarting("Starts In 3", 3, PromoStatus.Approved);
+    await promoStarting("Starts In 10 (out of window)", 10, PromoStatus.Approved);
+    await promoStarting("Already Completed", 1, PromoStatus.Completed);
+
+    const summary = await service.summary({
+      brandId: brand.id,
+      userId: "spv",
+      now,
+      upcomingWindowDays: 7,
+    });
+
+    // Timeline: only promos starting within 0..7 days, soonest first.
+    expect(summary.upcomingPromos.map((p) => p.name)).toEqual([
+      "Starts Today",
+      "Already Completed",
+      "Starts In 3",
+    ]);
+    expect(summary.upcomingPromos[0]?.daysUntilStart).toBe(0);
+    expect(summary.upcomingPromos[2]?.daysUntilStart).toBe(3);
+
+    // Active campaign card: 4 promos, 1 completed -> 25%, ends in 6 days.
+    expect(summary.activeCampaigns).toHaveLength(1);
+    expect(summary.activeCampaigns[0]).toMatchObject({
+      name: "June Payday",
+      promoCount: 4,
+      progress: 25,
+      daysUntilEnd: 6,
+    });
+  });
 });

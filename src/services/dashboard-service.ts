@@ -7,7 +7,7 @@
  * without introducing a stale cache in the MVP in-memory adapter.
  */
 
-import { ExecutionStatus, PromoStatus } from "../domain";
+import { CampaignStatus, ExecutionStatus, PromoStatus } from "../domain";
 import type {
   ApprovalHistoryEntry,
   Brand,
@@ -35,6 +35,10 @@ export interface DashboardSummaryQuery {
   readonly brandId?: string;
   readonly userId: string;
   readonly limit?: number;
+  /** Reference time for upcoming/ends-in computations. Defaults to now. */
+  readonly now?: Date;
+  /** Window (days) for the Promotion Timeline. Defaults to 7. */
+  readonly upcomingWindowDays?: number;
 }
 
 export interface DashboardWidgets {
@@ -99,12 +103,45 @@ export interface DashboardRecentActivity {
   readonly approvals: RecentApprovalActivity[];
 }
 
+/** An upcoming promo for the Promotion Timeline (starts on/after `now`). */
+export interface UpcomingPromo {
+  readonly id: string;
+  readonly name: string;
+  readonly brandId: string;
+  readonly brandName: string;
+  readonly campaignId: string;
+  readonly campaignName: string;
+  readonly promoType: string;
+  readonly status: string;
+  readonly startsAt: Date;
+  /** Whole days from `now` until the promo starts (0 = today). */
+  readonly daysUntilStart: number;
+}
+
+/** An active campaign projected as a project card (progress + ends-in). */
+export interface ActiveCampaignCard {
+  readonly id: string;
+  readonly name: string;
+  readonly brandId: string;
+  readonly brandName: string;
+  readonly status: string;
+  readonly promoCount: number;
+  /** Completion percentage from completed promos over total (0–100). */
+  readonly progress: number;
+  readonly startsAt: Date;
+  readonly endsAt: Date;
+  /** Whole days from `now` until the campaign ends (0 = ends today, <0 = ended). */
+  readonly daysUntilEnd: number;
+}
+
 export interface DashboardSummary {
   readonly brandId: string | null;
   readonly brandName: string | null;
   readonly widgets: DashboardWidgets;
   readonly workQueue: DashboardWorkQueue;
   readonly recentActivity: DashboardRecentActivity;
+  readonly upcomingPromos: UpcomingPromo[];
+  readonly activeCampaigns: ActiveCampaignCard[];
   readonly recomputedAt: Date;
 }
 
@@ -176,6 +213,8 @@ export class DashboardService {
     const promoCountByCampaign = this.countPromosByCampaign(promos);
     const feedbackByPromo = await this.feedbackByPromo(promos);
     const approvalsByPromo = await this.approvalsByPromo(promos);
+    const now = query.now ?? new Date();
+    const windowDays = query.upcomingWindowDays ?? 7;
 
     return {
       brandId: resolvedBrand?.id ?? null,
@@ -190,6 +229,20 @@ export class DashboardService {
         campaignById,
         promoCountByCampaign,
         limit: normalizeLimit(query.limit),
+      }),
+      upcomingPromos: this.upcomingPromos({
+        promos,
+        brandById,
+        campaignById,
+        now,
+        windowDays,
+      }),
+      activeCampaigns: this.activeCampaigns({
+        campaigns,
+        promos,
+        brandById,
+        promoCountByCampaign,
+        now,
       }),
       recomputedAt: new Date(),
     };
@@ -221,6 +274,8 @@ export class DashboardService {
         promos: [],
         approvals: [],
       },
+      upcomingPromos: [],
+      activeCampaigns: [],
       recomputedAt: new Date(),
     };
   }
@@ -297,6 +352,95 @@ export class DashboardService {
       counts.set(promo.campaignId, (counts.get(promo.campaignId) ?? 0) + 1);
     }
     return counts;
+  }
+
+  /** Whole days between two dates (b − a), by calendar day, sign preserved. */
+  private daysBetween(from: Date, to: Date): number {
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    const startOfDay = (d: Date) =>
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    return Math.round((startOfDay(to) - startOfDay(from)) / MS_PER_DAY);
+  }
+
+  /** Promos starting on/after `now` within the window, soonest first. */
+  private upcomingPromos(input: {
+    readonly promos: readonly PromoScenario[];
+    readonly brandById: ReadonlyMap<string, Brand>;
+    readonly campaignById: ReadonlyMap<string, Campaign>;
+    readonly now: Date;
+    readonly windowDays: number;
+  }): UpcomingPromo[] {
+    return input.promos
+      .map((promo) => ({
+        promo,
+        daysUntilStart: this.daysBetween(input.now, promo.tanggalMulai),
+      }))
+      .filter(
+        ({ daysUntilStart }) =>
+          daysUntilStart >= 0 && daysUntilStart <= input.windowDays,
+      )
+      .sort(
+        (a, b) =>
+          a.promo.tanggalMulai.getTime() - b.promo.tanggalMulai.getTime(),
+      )
+      .map(({ promo, daysUntilStart }) => {
+        const brand = input.brandById.get(promo.brandId);
+        const campaign = input.campaignById.get(promo.campaignId);
+        return {
+          id: promo.id,
+          name: promo.namaPromo,
+          brandId: promo.brandId,
+          brandName: brand?.displayName ?? promo.brandId,
+          campaignId: promo.campaignId,
+          campaignName: campaign?.nama ?? promo.campaignId,
+          promoType: promo.promoType,
+          status: promo.status,
+          startsAt: promo.tanggalMulai,
+          daysUntilStart,
+        };
+      });
+  }
+
+  /** Active campaigns as project cards with progress % and ends-in days. */
+  private activeCampaigns(input: {
+    readonly campaigns: readonly Campaign[];
+    readonly promos: readonly PromoScenario[];
+    readonly brandById: ReadonlyMap<string, Brand>;
+    readonly promoCountByCampaign: ReadonlyMap<string, number>;
+    readonly now: Date;
+  }): ActiveCampaignCard[] {
+    const completedByCampaign = new Map<string, number>();
+    for (const promo of input.promos) {
+      if (promo.status === PromoStatus.Completed) {
+        completedByCampaign.set(
+          promo.campaignId,
+          (completedByCampaign.get(promo.campaignId) ?? 0) + 1,
+        );
+      }
+    }
+
+    return input.campaigns
+      .filter((campaign) => campaign.status === CampaignStatus.Active)
+      .sort((a, b) => a.tanggalSelesai.getTime() - b.tanggalSelesai.getTime())
+      .map((campaign) => {
+        const promoCount = input.promoCountByCampaign.get(campaign.id) ?? 0;
+        const completed = completedByCampaign.get(campaign.id) ?? 0;
+        const progress =
+          promoCount === 0 ? 0 : Math.round((completed / promoCount) * 100);
+        const brand = input.brandById.get(campaign.brandId);
+        return {
+          id: campaign.id,
+          name: campaign.nama,
+          brandId: campaign.brandId,
+          brandName: brand?.displayName ?? campaign.brandId,
+          status: campaign.status,
+          promoCount,
+          progress,
+          startsAt: campaign.tanggalMulai,
+          endsAt: campaign.tanggalSelesai,
+          daysUntilEnd: this.daysBetween(input.now, campaign.tanggalSelesai),
+        };
+      });
   }
 
   private recentActivity(input: {
