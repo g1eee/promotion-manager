@@ -2676,3 +2676,78 @@ textarea.pms-control {
     min-height: 42px;
   }
 }
+
+/* ---------- Promotion Timeline (standalone page) ---------- */
+
+.pms-timeline-day {
+  display: flex;
+  align-items: center;
+  gap: var(--pms-space-sm);
+  color: var(--pms-color-text-primary);
+}
+.pms-timeline-day__label {
+  font-family: var(--pms-font-family-display);
+  font-size: var(--pms-font-size-md);
+  font-weight: var(--pms-font-weight-semibold);
+  letter-spacing: -0.01em;
+}
+.pms-timeline-day__count {
+  margin-left: auto;
+  font-size: var(--pms-font-size-xs);
+  font-weight: var(--pms-font-weight-semibold);
+  color: var(--pms-color-text-muted);
+  white-space: nowrap;
+}
+.pms-timeline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pms-timeline-list__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--pms-space-md);
+  padding: var(--pms-space-sm) 0;
+  border-bottom: 1px solid var(--pms-color-border);
+}
+.pms-timeline-list__item:last-child {
+  border-bottom: none;
+}
+.pms-timeline-list__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pms-timeline-list__name {
+  color: var(--pms-color-text-primary);
+  font-weight: var(--pms-font-weight-medium);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.pms-timeline-list__name:hover {
+  color: var(--pms-color-primary-hover);
+}
+.pms-timeline-list__meta {
+  font-size: var(--pms-font-size-sm);
+  color: var(--pms-color-text-secondary);
+}
+.pms-timeline-list__when {
+  font-size: var(--pms-font-size-xs);
+  font-weight: var(--pms-font-weight-semibold);
+  color: var(--pms-color-text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .pms-timeline-list__item {
+    grid-template-columns: 1fr;
+    gap: var(--pms-space-xs);
+  }
+  .pms-timeline-list__when {
+    white-space: normal;
+  }
+}

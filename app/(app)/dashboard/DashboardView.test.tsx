@@ -147,13 +147,12 @@ describe("DashboardView", () => {
     expect(screen.getByText("Pending Review")).toBeInTheDocument();
     expect(screen.getByText("Waiting Execution")).toBeInTheDocument();
     expect(screen.getByText("Unread Feedback")).toBeInTheDocument();
-    // Promotion Timeline (upcoming promo)
-    expect(screen.getByText("Promotion Timeline")).toBeInTheDocument();
-    expect(screen.getByText("Flash Sale Serbu")).toBeInTheDocument();
     // Active campaign project card
     expect(screen.getByText("Active Campaigns")).toBeInTheDocument();
     expect(screen.getAllByText("Payday Campaign").length).toBeGreaterThan(0);
     // Campaign calendar
     expect(screen.getByText("Kalender Campaign")).toBeInTheDocument();
+    // Promotion Timeline now lives on its own page, not the dashboard.
+    expect(screen.queryByText("Promotion Timeline")).not.toBeInTheDocument();
   });
 });
