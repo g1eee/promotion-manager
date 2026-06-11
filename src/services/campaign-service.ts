@@ -124,6 +124,15 @@ export class CampaignService {
     return this.deps.campaigns.list(filter);
   }
 
+  /** Return one Campaign by id, or raise NotFoundError for API 404 mapping. */
+  async get(id: string): Promise<Campaign> {
+    const campaign = await this.deps.campaigns.findById(id);
+    if (!campaign) {
+      throw new NotFoundError("Campaign", id);
+    }
+    return campaign;
+  }
+
   /**
    * Validate and persist a new Campaign with the initial Status Draft, tied to
    * exactly one existing Brand, and audit fields stamped (Req 6.1, 6.2, 6.3,

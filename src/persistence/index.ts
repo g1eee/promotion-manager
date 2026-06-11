@@ -8,6 +8,7 @@
 
 export type {
   ApprovalHistoryRepository,
+  AttachmentRepository,
   BrandRepository,
   CampaignRepository,
   CostConfigurationRepository,

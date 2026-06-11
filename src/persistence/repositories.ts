@@ -18,6 +18,7 @@
 
 import type {
   ApprovalHistoryEntry,
+  Attachment,
   Brand,
   Campaign,
   CostConfiguration,
@@ -157,4 +158,17 @@ export interface ExecutionStatusRepository {
   get(promoRef: string): Promise<ExecutionStatus | null>;
   /** Persist a new execution status for the promo (FK Promo enforced). */
   set(promoRef: string, status: ExecutionStatus): Promise<void>;
+}
+
+/**
+ * Attachment repository — supporting files on a promo (Req 21, nice-to-have).
+ */
+export interface AttachmentRepository {
+  findById(id: string): Promise<Attachment | null>;
+  /** All attachments for a promo, oldest-first. */
+  listByPromo(promoRef: string): Promise<Attachment[]>;
+  /** Insert; enforces FK Promo existence. */
+  insert(attachment: Attachment): Promise<Attachment>;
+  /** Delete an attachment by id. */
+  delete(id: string): Promise<void>;
 }

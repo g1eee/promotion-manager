@@ -1,10 +1,29 @@
-import { ModulePlaceholder } from "../../_components/ModulePlaceholder";
+import { ToastProvider } from "@ui/components";
+import { PromoScenariosView } from "./PromoScenariosView";
 
-export default function PromoScenariosPage() {
+interface PromoScenariosPageProps {
+  readonly searchParams?: Promise<{
+    brandId?: string | string[];
+    campaignId?: string | string[];
+    editPromoId?: string | string[];
+  }>;
+}
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function PromoScenariosPage({
+  searchParams,
+}: PromoScenariosPageProps) {
+  const params = searchParams ? await searchParams : {};
   return (
-    <ModulePlaceholder
-      title="Promo Scenarios"
-      description="Build promo scenarios with rules, product selection, and inline simulator."
-    />
+    <ToastProvider>
+      <PromoScenariosView
+        initialBrandId={firstParam(params.brandId)}
+        initialCampaignId={firstParam(params.campaignId)}
+        initialEditPromoId={firstParam(params.editPromoId)}
+      />
+    </ToastProvider>
   );
 }

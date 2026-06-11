@@ -18,6 +18,7 @@
 import type { Persistence, UnitOfWork } from "../transaction";
 import {
   InMemoryApprovalHistoryRepository,
+  InMemoryAttachmentRepository,
   InMemoryBrandRepository,
   InMemoryCampaignRepository,
   InMemoryCostConfigurationRepository,
@@ -41,6 +42,7 @@ export class InMemoryPersistence implements Persistence {
   readonly feedback: InMemoryFeedbackRecordRepository;
   readonly approvalHistory: InMemoryApprovalHistoryRepository;
   readonly executionStatus: InMemoryExecutionStatusRepository;
+  readonly attachments: InMemoryAttachmentRepository;
 
   constructor(store: InMemoryStore = new InMemoryStore()) {
     this.store = store;
@@ -53,6 +55,7 @@ export class InMemoryPersistence implements Persistence {
     this.feedback = new InMemoryFeedbackRecordRepository(store);
     this.approvalHistory = new InMemoryApprovalHistoryRepository(store);
     this.executionStatus = new InMemoryExecutionStatusRepository(store);
+    this.attachments = new InMemoryAttachmentRepository(store);
   }
 
   async runInTransaction<T>(work: (uow: UnitOfWork) => Promise<T> | T): Promise<T> {

@@ -94,6 +94,33 @@ export enum MarginHealth {
   Risky = "Risky",
 }
 
+const HEALTHY_NPM_THRESHOLD = 20;
+const WARNING_NPM_THRESHOLD = 10;
+
+// Enum/namespace merge intentionally attaches `classify` as a static helper on
+// the `MarginHealth` enum so callers use `MarginHealth.classify(...)` alongside
+// the enum members. This is the canonical TS pattern for enum statics.
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MarginHealth {
+  /**
+   * Classify NPM% into the analytical Margin Health bands (Req 20.1-20.4).
+   *
+   * Boundary rules are inclusive at the lower edge of each stronger band:
+   * - `npmPct >= 20` => Healthy
+   * - `10 <= npmPct < 20` => Warning
+   * - `npmPct < 10` => Risky
+   */
+  export function classify(npmPct: number): MarginHealth {
+    if (npmPct >= HEALTHY_NPM_THRESHOLD) {
+      return MarginHealth.Healthy;
+    }
+    if (npmPct >= WARNING_NPM_THRESHOLD) {
+      return MarginHealth.Warning;
+    }
+    return MarginHealth.Risky;
+  }
+}
+
 /**
  * Benefit type for a promo Rule (Req 23.1, Data Models: Rule).
  */

@@ -47,10 +47,11 @@
  * and NPM % are reported as `null`. The other five outputs (Harga Normal,
  * Harga Promo, Potongan, Margin Rp, Margin %) are still produced. The presence
  * of the active cost basis used (Req 11.8 "Active Cost Configuration" /
- * Last Updated Date) and Margin Health classification (Req 20) are handled by
- * separate tasks and are intentionally out of scope here.
+ * Last Updated Date) is exposed through `activeCostConfigInfo`. Margin Health
+ * classification (Req 20) is exposed through `classifyMarginHealth`.
  */
 
+import { MarginHealth } from "./enums";
 import { PromoCalculator } from "./promo-calculator";
 import type { CostConfiguration, Product, Rule } from "./types";
 
@@ -105,6 +106,25 @@ export interface SimulatedProduct {
   readonly npmDeferred: boolean;
 }
 
+/** Product fields required by the simulator; display/persistence fields are not needed. */
+export type SimulatorProductInput = Pick<
+  Product,
+  "brandId" | "productId" | "hpp" | "hargaJual"
+>;
+
+/**
+ * Transparent metadata for the Cost_Configuration currently driving simulator
+ * NPM calculations (Req 11.8).
+ */
+export interface ActiveCostConfigInfo {
+  /** Brand whose Cost_Configuration is being used by the simulator. */
+  readonly brandId: string;
+  /** Whether the configuration is active; inactive config defers NPM. */
+  readonly isActive: boolean;
+  /** Last updated timestamp surfaced as "Last Updated Date" in the UI. */
+  readonly lastUpdatedDate: Date;
+}
+
 /**
  * Sum the ten Cost_Configuration components as a whole-number percent (Req 11.2).
  *
@@ -113,6 +133,19 @@ export interface SimulatedProduct {
  */
 function sumCostComponents(costConfig: CostConfiguration): number {
   return COST_COMPONENT_KEYS.reduce((sum, key) => sum + costConfig[key], 0);
+}
+
+/**
+ * Return the active-cost transparency payload for the simulator (Req 11.8).
+ */
+function activeCostConfigInfo(
+  costConfig: CostConfiguration,
+): ActiveCostConfigInfo {
+  return {
+    brandId: costConfig.brandId,
+    isActive: costConfig.isActive,
+    lastUpdatedDate: costConfig.updatedAt,
+  };
 }
 
 /**
@@ -160,7 +193,7 @@ function isNpmDeferred(
  * @returns The {@link SimulatedProduct} result.
  */
 function simulate(
-  product: Product,
+  product: SimulatorProductInput,
   rule: Rule,
   costConfig: CostConfiguration | null | undefined,
 ): SimulatedProduct {
@@ -221,7 +254,7 @@ function simulate(
  * @returns A new array of {@link SimulatedProduct} in the same order as `products`.
  */
 function simulateAll(
-  products: readonly Product[],
+  products: readonly SimulatorProductInput[],
   rule: Rule,
   costConfig: CostConfiguration | null | undefined,
 ): SimulatedProduct[] {
@@ -234,10 +267,14 @@ function simulateAll(
 export const Simulator = {
   /** Sum of the ten cost components as a whole-number percent (Req 11.2). */
   sumCostComponents,
+  /** Active Cost Configuration metadata for transparent simulator display (Req 11.8). */
+  activeCostConfigInfo,
 
   /** Simulate the seven outputs for one product (Req 11.1–11.7). */
   simulate,
 
   /** Apply the same Rule to all selected products (Req 10.3, 11.1). */
   simulateAll,
+  /** Margin Health classification by NPM% (Req 20.1-20.4). */
+  classifyMarginHealth: MarginHealth.classify,
 } as const;

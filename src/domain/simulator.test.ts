@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { BenefitType } from "./enums";
+import { BenefitType, MarginHealth } from "./enums";
 import { COST_COMPONENT_KEYS, Simulator } from "./simulator";
 import type { CostConfiguration, Product, Rule } from "./types";
 
@@ -95,6 +95,29 @@ describe("Simulator.sumCostComponents sums the ten components (Req 11.2)", () =>
       "affiliateCommission",
       "operatingCost",
     ]);
+  });
+});
+
+describe("Simulator.activeCostConfigInfo exposes active cost metadata (Req 11.8)", () => {
+  it("returns Brand, active flag, and Last Updated Date", () => {
+    const updatedAt = new Date("2024-04-05T06:07:08Z");
+    const cfg = costConfig({
+      brandId: "brand-transparent",
+      isActive: true,
+      updatedAt,
+    });
+
+    expect(Simulator.activeCostConfigInfo(cfg)).toEqual({
+      brandId: "brand-transparent",
+      isActive: true,
+      lastUpdatedDate: updatedAt,
+    });
+  });
+
+  it("surfaces inactive configs so the UI can show deferred NPM basis", () => {
+    const cfg = costConfig({ isActive: false });
+
+    expect(Simulator.activeCostConfigInfo(cfg).isActive).toBe(false);
   });
 });
 
@@ -261,6 +284,37 @@ describe("Simulator.simulateAll applies the SAME Rule to all products (Req 10.3,
     const results = Simulator.simulateAll(products, rule(), costConfig());
     expect(results.map((x) => x.productId)).toEqual(["A", "B", "C"]);
     expect(Simulator.simulateAll([], rule(), costConfig())).toEqual([]);
+  });
+});
+
+describe("MarginHealth.classify derives health from NPM% (Req 20.1-20.4)", () => {
+  it("classifies NPM% at and above 20 as Healthy", () => {
+    expect(MarginHealth.classify(20)).toBe(MarginHealth.Healthy);
+    expect(MarginHealth.classify(35.5)).toBe(MarginHealth.Healthy);
+    expect(Simulator.classifyMarginHealth(20)).toBe(MarginHealth.Healthy);
+  });
+
+  it("classifies NPM% from 10 inclusive to below 20 as Warning", () => {
+    expect(MarginHealth.classify(10)).toBe(MarginHealth.Warning);
+    expect(MarginHealth.classify(19.999)).toBe(MarginHealth.Warning);
+  });
+
+  it("classifies NPM% below 10 as Risky", () => {
+    expect(MarginHealth.classify(9.999)).toBe(MarginHealth.Risky);
+    expect(MarginHealth.classify(-12)).toBe(MarginHealth.Risky);
+  });
+
+  it("is analytical only and recomputes directly from the latest NPM%", () => {
+    const p = product({ hargaJual: 100_000, hpp: 60_000 });
+    const r = rule({ discountPercent: 0 });
+
+    const healthy = Simulator.simulate(p, r, costConfig({ adminFee: 10 }));
+    const risky = Simulator.simulate(p, r, costConfig({ adminFee: 35 }));
+
+    expect(healthy.npmPct).toBe(30);
+    expect(risky.npmPct).toBe(5);
+    expect(MarginHealth.classify(healthy.npmPct!)).toBe(MarginHealth.Healthy);
+    expect(MarginHealth.classify(risky.npmPct!)).toBe(MarginHealth.Risky);
   });
 });
 

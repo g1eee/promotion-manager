@@ -29,7 +29,11 @@ export { PromoCalculator } from "./promo-calculator";
 export type { PricedProduct } from "./promo-calculator";
 
 export { Simulator, COST_COMPONENT_KEYS } from "./simulator";
-export type { SimulatedProduct } from "./simulator";
+export type {
+  ActiveCostConfigInfo,
+  SimulatedProduct,
+  SimulatorProductInput,
+} from "./simulator";
 
 export { ProductSelection, ProductSelectionError } from "./product-selection";
 export type {

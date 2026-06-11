@@ -1,10 +1,10 @@
-import { ModulePlaceholder } from "../../_components/ModulePlaceholder";
+import { ToastProvider } from "@ui/components";
+import { CampaignsView } from "./CampaignsView";
 
 export default function CampaignsPage() {
   return (
-    <ModulePlaceholder
-      title="Campaigns"
-      description="Plan and manage campaigns; each campaign contains its promo scenarios."
-    />
+    <ToastProvider>
+      <CampaignsView />
+    </ToastProvider>
   );
 }

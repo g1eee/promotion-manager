@@ -157,6 +157,24 @@ describe("Admin_Marketplace — restricted allowed actions (Req 1.3, 1.5)", () =
     ).toBe(true);
   });
 
+  it("allows reading and updating Execution_Status from the Admin board", () => {
+    expect(
+      isAllowed(
+        authorize(ADMIN, AccessAction.Read, AccessResource.ExecutionStatus),
+      ),
+    ).toBe(true);
+    expect(
+      isAllowed(
+        authorize(ADMIN, AccessAction.Update, AccessResource.ExecutionStatus),
+      ),
+    ).toBe(true);
+    expect(
+      isAllowed(
+        authorize(ADMIN, AccessAction.Create, AccessResource.ExecutionStatus),
+      ),
+    ).toBe(false);
+  });
+
   it("denies updating Feedback_Record (only create/read are permitted)", () => {
     expect(
       isAllowed(
@@ -215,6 +233,7 @@ describe("AccessController surface and helpers", () => {
     }
     expect(isWriteControlledResource(AccessResource.FeedbackRecord)).toBe(false);
     expect(isWriteControlledResource(AccessResource.Brand)).toBe(false);
+    expect(isWriteControlledResource(AccessResource.ExecutionStatus)).toBe(false);
   });
 
   it("fails closed (deny) for an unrecognized role", () => {
