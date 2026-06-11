@@ -66,6 +66,7 @@ export function Sidebar({ role = Role.SPV_Marketing }: SidebarProps) {
                       active && "pms-nav-link--active",
                     )}
                     aria-current={active ? "page" : undefined}
+                    data-initial={item.label.charAt(0).toUpperCase()}
                   >
                     {item.label}
                   </Link>

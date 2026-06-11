@@ -12,7 +12,7 @@ const STATUS_TONE: Record<string, BadgeTone> = {
   review: "info",
   approved: "success",
   rejected: "danger",
-  active: "success",
+  active: "secondary",
   completed: "neutral",
   archived: "neutral",
   inactive: "neutral",

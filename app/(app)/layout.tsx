@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { AppShell } from "./_components/AppShell";
 import { BrandProvider } from "./_components/BrandContext";
 import { GlobalBrandSelector } from "./_components/GlobalBrandSelector";
+import { NotificationBell } from "./_components/NotificationBell";
 import { SignOutButton } from "./_components/SignOutButton";
 import { Sidebar } from "./_components/Sidebar";
 import { TopBar } from "./_components/TopBar";
@@ -49,18 +51,20 @@ export default async function AppLayout({
 
   return (
     <BrandProvider>
-      <div className="pms-shell">
-        <TopBar
-          userName={userName}
-          userRole={userRole}
-          brandSelectorSlot={<GlobalBrandSelector />}
-          signOutSlot={<SignOutButton />}
-        />
-        <Sidebar role={userRole} />
-        <main className="pms-shell__content" id="main-content">
-          {children}
-        </main>
-      </div>
+      <AppShell
+        topBar={
+          <TopBar
+            userName={userName}
+            userRole={userRole}
+            brandSelectorSlot={<GlobalBrandSelector />}
+            notificationSlot={<NotificationBell />}
+            signOutSlot={<SignOutButton />}
+          />
+        }
+        sidebar={<Sidebar role={userRole} />}
+      >
+        {children}
+      </AppShell>
     </BrandProvider>
   );
 }
