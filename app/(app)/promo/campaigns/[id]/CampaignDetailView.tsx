@@ -10,10 +10,9 @@ import {
   SkeletonCard,
   Stack,
   StatusBadge,
-  Table,
   useToast,
 } from "@ui/components";
-import type { ButtonVariant, TableColumn } from "@ui/components";
+import type { ButtonVariant } from "@ui/components";
 import { PromoStatus } from "@domain/enums";
 import type { Brand, Campaign, PromoScenario } from "@domain/types";
 
@@ -94,6 +93,15 @@ function formatDate(value: Date | string): string {
     new Date(value),
   );
 }
+
+/** Pipeline stages shown as Kanban columns, in workflow order. */
+const PIPELINE_STAGES: readonly { status: PromoStatus; label: string }[] = [
+  { status: PromoStatus.Draft, label: "Draft" },
+  { status: PromoStatus.Review, label: "Review" },
+  { status: PromoStatus.Approved, label: "Approved" },
+  { status: PromoStatus.Active, label: "Active" },
+  { status: PromoStatus.Completed, label: "Completed" },
+];
 
 export function CampaignDetailView({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -205,74 +213,6 @@ export function CampaignDetailView({ campaignId }: { campaignId: string }) {
     [toast],
   );
 
-  const columns = useMemo<TableColumn<PromoScenario>[]>(
-    () => [
-      {
-        key: "namaPromo",
-        header: "Promo",
-        render: (promo) => promo.namaPromo,
-      },
-      {
-        key: "promoType",
-        header: "Promo Type",
-        render: (promo) => promo.promoType,
-      },
-      {
-        key: "date",
-        header: "Tanggal",
-        render: (promo) =>
-          `${formatDate(promo.tanggalMulai)} - ${formatDate(
-            promo.tanggalSelesai,
-          )}`,
-      },
-      {
-        key: "products",
-        header: "Produk",
-        numeric: true,
-        render: (promo) => promo.productRefs.length,
-      },
-      {
-        key: "status",
-        header: "Status",
-        render: (promo) => <StatusBadge status={promo.status} />,
-      },
-      {
-        key: "actions",
-        header: "Aksi",
-        align: "right",
-        render: (promo) => (
-          <Stack direction="horizontal" justify="flex-end">
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={cloneSubmitting === promo.id}
-              onClick={() => void clonePromo(promo)}
-            >
-              {cloneSubmitting === promo.id ? "Cloning..." : "Clone"}
-            </Button>
-            {approvalActionsFor(promo).map((action) => {
-              const submitKey = approvalSubmitKey(promo.id, action.status);
-              return (
-                <Button
-                  key={action.status}
-                  size="sm"
-                  variant={action.variant}
-                  disabled={approvalSubmitting !== null}
-                  onClick={() => void changeApprovalStatus(promo, action.status)}
-                >
-                  {approvalSubmitting === submitKey
-                    ? "Memproses..."
-                    : action.label}
-                </Button>
-              );
-            })}
-          </Stack>
-        ),
-      },
-    ],
-    [approvalSubmitting, changeApprovalStatus, clonePromo, cloneSubmitting],
-  );
-
   if (loading) {
     return (
       <Stack gap="lg">
@@ -357,12 +297,81 @@ export function CampaignDetailView({ campaignId }: { campaignId: string }) {
             }
           />
         ) : (
-          <Table
-            columns={columns}
-            data={promos}
-            rowKey={(promo) => promo.id}
-            caption="Promo dalam Campaign"
-          />
+          <div className="pms-kanban">
+            {PIPELINE_STAGES.map((stage) => {
+              const stagePromos = promos.filter(
+                (promo) => promo.status === stage.status,
+              );
+              return (
+                <div key={stage.status} className="pms-kanban__col">
+                  <div className="pms-kanban__col-head">
+                    <StatusBadge status={stage.label} />
+                    <span className="pms-kanban__count">
+                      {stagePromos.length}
+                    </span>
+                  </div>
+                  <div className="pms-kanban__list">
+                    {stagePromos.length === 0 ? (
+                      <p className="pms-kanban__empty">—</p>
+                    ) : (
+                      stagePromos.map((promo) => {
+                        const editHref = `/promo/scenarios?brandId=${encodeURIComponent(
+                          promo.brandId,
+                        )}&campaignId=${encodeURIComponent(
+                          promo.campaignId,
+                        )}&editPromoId=${encodeURIComponent(promo.id)}`;
+                        return (
+                          <div key={promo.id} className="pms-kanban__card">
+                            <Link href={editHref} className="pms-kanban__card-title">
+                              {promo.namaPromo}
+                            </Link>
+                            <div className="pms-kanban__card-meta">
+                              <span>{promo.promoType}</span>
+                              <span>{promo.productRefs.length} produk</span>
+                            </div>
+                            <div className="pms-kanban__card-actions">
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                disabled={cloneSubmitting === promo.id}
+                                onClick={() => void clonePromo(promo)}
+                              >
+                                {cloneSubmitting === promo.id ? "..." : "Clone"}
+                              </Button>
+                              {approvalActionsFor(promo).map((action) => {
+                                const submitKey = approvalSubmitKey(
+                                  promo.id,
+                                  action.status,
+                                );
+                                return (
+                                  <Button
+                                    key={action.status}
+                                    size="sm"
+                                    variant={action.variant}
+                                    disabled={approvalSubmitting !== null}
+                                    onClick={() =>
+                                      void changeApprovalStatus(
+                                        promo,
+                                        action.status,
+                                      )
+                                    }
+                                  >
+                                    {approvalSubmitting === submitKey
+                                      ? "..."
+                                      : action.label}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </Card>
     </Stack>

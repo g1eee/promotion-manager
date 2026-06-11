@@ -14,10 +14,8 @@ import {
   SkeletonTable,
   Stack,
   StatusBadge,
-  Table,
   useToast,
 } from "@ui/components";
-import type { TableColumn } from "@ui/components";
 import { CampaignStatus } from "@domain/enums";
 import type { Brand, Campaign } from "@domain/types";
 import { useActiveBrand } from "../../_components/BrandContext";
@@ -287,69 +285,6 @@ export function CampaignsView() {
     }
   }, [archiveTarget, loadData, toast]);
 
-  const columns = useMemo<TableColumn<CampaignRow>[]>(
-    () => [
-      {
-        key: "brand",
-        header: "Brand",
-        render: (campaign) =>
-          brandNameById.get(campaign.brandId) ?? campaign.brandId,
-      },
-      {
-        key: "nama",
-        header: "Campaign",
-        render: (campaign) => campaign.nama,
-      },
-      {
-        key: "date",
-        header: "Tanggal Berjalan",
-        render: (campaign) =>
-          `${formatDate(campaign.tanggalMulai)} - ${formatDate(
-            campaign.tanggalSelesai,
-          )}`,
-      },
-      {
-        key: "status",
-        header: "Status",
-        render: (campaign) => <StatusBadge status={campaign.status} />,
-      },
-      {
-        key: "promoCount",
-        header: "Promo",
-        numeric: true,
-        render: (campaign) => campaign.promoCount,
-      },
-      {
-        key: "actions",
-        header: "Aksi",
-        align: "right",
-        render: (campaign) => (
-          <Stack direction="horizontal" gap="xs" justify="flex-end">
-            <Link href={`/promo/campaigns/${campaign.id}`} className="pms-link-btn">
-              View
-            </Link>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => openEdit(campaign)}
-            >
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={campaign.status === CampaignStatus.Archived}
-              onClick={() => setArchiveTarget(campaign)}
-            >
-              Arsipkan
-            </Button>
-          </Stack>
-        ),
-      },
-    ],
-    [brandNameById, openEdit],
-  );
-
   const brandIdField = `${fieldPrefix}-brand`;
   const namaField = `${fieldPrefix}-nama`;
   const startField = `${fieldPrefix}-mulai`;
@@ -384,12 +319,56 @@ export function CampaignsView() {
             onAction={openCreate}
           />
         ) : (
-          <Table
-            columns={columns}
-            data={campaigns}
-            rowKey={(campaign) => campaign.id}
-            caption="Daftar Campaign"
-          />
+          <div className="pms-cards-grid">
+            {campaigns.map((campaign) => (
+              <div key={campaign.id} className="pms-project-card">
+                <div className="pms-project-card__head">
+                  <span className="pms-project-card__brand">
+                    {brandNameById.get(campaign.brandId) ?? campaign.brandId}
+                  </span>
+                  <StatusBadge status={campaign.status} />
+                </div>
+                <Link
+                  href={`/promo/campaigns/${campaign.id}`}
+                  className="pms-project-card__title"
+                >
+                  {campaign.nama}
+                </Link>
+                <div className="pms-project-card__dates">
+                  {formatDate(campaign.tanggalMulai)} –{" "}
+                  {formatDate(campaign.tanggalSelesai)}
+                </div>
+                <div className="pms-project-card__stats">
+                  <span>
+                    <strong>{campaign.promoCount}</strong> promo
+                  </span>
+                </div>
+                <div className="pms-project-card__actions">
+                  <Link
+                    href={`/promo/campaigns/${campaign.id}`}
+                    className="pms-link-btn"
+                  >
+                    View
+                  </Link>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => openEdit(campaign)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={campaign.status === CampaignStatus.Archived}
+                    onClick={() => setArchiveTarget(campaign)}
+                  >
+                    Arsipkan
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </Card>
 
