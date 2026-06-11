@@ -98,6 +98,13 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
         <Button type="submit" block size="lg" disabled={submitting}>
           {submitting ? "Memproses…" : "Masuk"}
         </Button>
+
+        <p className="pms-login__hint">
+          Akun demo — SPV: <code>spv@pms.local</code> /{" "}
+          <code>spv12345</code>
+          <br />
+          Admin: <code>admin@pms.local</code> / <code>admin12345</code>
+        </p>
       </form>
     </Card>
   );
