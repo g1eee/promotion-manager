@@ -7,39 +7,43 @@
  */
 
 :root {
-  /* Colors — indigo/violet primary with cool neutrals (operations console). */
+  /* Colors — indigo primary + cyan secondary (PRD palette). */
   --pms-color-primary: #4f46e5;
   --pms-color-primary-hover: #4338ca;
   --pms-color-primary-active: #3730a3;
   --pms-color-primary-subtle: #eef0ff;
 
-  --pms-color-bg: #f6f7fb;
-  --pms-color-surface: #ffffff;
-  --pms-color-surface-alt: #f1f2f9;
-  --pms-color-border: #e6e8f0;
-  --pms-color-border-strong: #cdd0de;
+  --pms-color-secondary: #06b6d4;
+  --pms-color-secondary-hover: #0891b2;
+  --pms-color-secondary-subtle: #cffafe;
 
-  --pms-color-text-primary: #14152a;
-  --pms-color-text-secondary: #51546b;
-  --pms-color-text-muted: #8a8da3;
+  --pms-color-bg: #f8fafc;
+  --pms-color-surface: #ffffff;
+  --pms-color-surface-alt: #f1f5f9;
+  --pms-color-border: #e2e8f0;
+  --pms-color-border-strong: #cbd5e1;
+
+  --pms-color-text-primary: #0f172a;
+  --pms-color-text-secondary: #64748b;
+  --pms-color-text-muted: #94a3b8;
   --pms-color-text-inverse: #ffffff;
 
-  --pms-color-success: #047857;
+  --pms-color-success: #059669;
   --pms-color-success-subtle: #d1fae5;
   --pms-color-warning: #b45309;
-  --pms-color-warning-subtle: #fef0d3;
-  --pms-color-danger: #be123c;
-  --pms-color-danger-subtle: #ffe4e6;
+  --pms-color-warning-subtle: #fef3c7;
+  --pms-color-danger: #dc2626;
+  --pms-color-danger-subtle: #fee2e2;
   --pms-color-info: #0e7490;
   --pms-color-info-subtle: #cffafe;
-  --pms-color-neutral: #51546b;
-  --pms-color-neutral-subtle: #eef0f6;
+  --pms-color-neutral: #64748b;
+  --pms-color-neutral-subtle: #eef2f7;
 
   --pms-color-focus-ring: #6366f1;
-  --pms-color-overlay: rgba(17, 18, 38, 0.55);
+  --pms-color-overlay: rgba(15, 23, 42, 0.55);
 
   /* Brand gradient (signature accent). */
-  --pms-gradient-brand: linear-gradient(135deg, #4f46e5 0%, #7c3aed 48%, #c026d3 100%);
+  --pms-gradient-brand: linear-gradient(135deg, #4f46e5 0%, #6d28d9 50%, #06b6d4 100%);
 
   /* Spacing */
   --pms-space-none: 0;
@@ -123,7 +127,7 @@ body {
       rgba(79, 70, 229, 0.05),
       transparent 38%
     ),
-    radial-gradient(circle at 100% 0%, rgba(192, 38, 211, 0.04), transparent 42%);
+    radial-gradient(circle at 100% 0%, rgba(6, 182, 212, 0.05), transparent 42%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -343,6 +347,7 @@ textarea.pms-control {
   border: 1px solid var(--pms-color-border);
   border-radius: var(--pms-radius-lg);
   background-color: var(--pms-color-surface);
+  box-shadow: var(--pms-shadow-sm);
 }
 .pms-table {
   width: 100%;
@@ -352,13 +357,13 @@ textarea.pms-control {
 .pms-table th,
 .pms-table td {
   text-align: left;
-  padding: var(--pms-space-sm) var(--pms-space-md);
+  padding: var(--pms-space-md);
   border-bottom: 1px solid var(--pms-color-border);
   vertical-align: middle;
 }
 .pms-table--compact th,
 .pms-table--compact td {
-  padding: var(--pms-space-xs) var(--pms-space-sm);
+  padding: var(--pms-space-sm) var(--pms-space-md);
 }
 .pms-table thead th {
   position: sticky;
@@ -366,16 +371,19 @@ textarea.pms-control {
   background-color: var(--pms-color-surface-alt);
   color: var(--pms-color-text-secondary);
   font-weight: var(--pms-font-weight-semibold);
-  font-size: var(--pms-font-size-sm);
+  font-size: var(--pms-font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+}
+.pms-table tbody tr {
+  transition: background-color 0.1s ease;
 }
 .pms-table tbody tr:last-child td {
   border-bottom: none;
 }
 .pms-table--striped tbody tr:nth-child(even) {
-  background-color: var(--pms-color-surface-alt);
+  background-color: color-mix(in srgb, var(--pms-color-surface-alt) 55%, transparent);
 }
 .pms-table--hoverable tbody tr:hover {
   background-color: var(--pms-color-primary-subtle);
@@ -396,16 +404,21 @@ textarea.pms-control {
   display: inline-flex;
   align-items: center;
   gap: var(--pms-space-xs);
-  padding: 2px var(--pms-space-sm);
+  padding: 3px var(--pms-space-sm);
   border-radius: var(--pms-radius-pill);
   font-size: var(--pms-font-size-xs);
   font-weight: var(--pms-font-weight-semibold);
   line-height: 1.5;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 .pms-badge--neutral {
   background-color: var(--pms-color-neutral-subtle);
   color: var(--pms-color-neutral);
+}
+.pms-badge--secondary {
+  background-color: var(--pms-color-secondary-subtle);
+  color: var(--pms-color-secondary-hover);
 }
 .pms-badge--info {
   background-color: var(--pms-color-info-subtle);
