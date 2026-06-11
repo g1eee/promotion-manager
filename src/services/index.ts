@@ -141,6 +141,7 @@ export type {
 export { DashboardService } from "./dashboard-service";
 export type {
   ActiveCampaignCard,
+  CalendarCampaign,
   DashboardRecentActivity,
   DashboardServiceDeps,
   DashboardSummary,

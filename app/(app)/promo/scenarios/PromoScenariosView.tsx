@@ -28,7 +28,6 @@ import type {
 } from "@domain/types";
 import type { ProductSelectionItem } from "@domain/product-selection";
 import { useActiveBrand } from "../../_components/BrandContext";
-import { PromoSimulatorPanel } from "./PromoSimulatorPanel";
 import { FeedbackThread } from "./FeedbackThread";
 
 type CampaignMode = "existing" | "inline";
@@ -291,9 +290,6 @@ export function PromoScenariosView({
   );
   const [productsOpen, setProductsOpen] = useState(false);
   const [productsTarget, setProductsTarget] =
-    useState<PromoScenario | null>(null);
-  const [simulatorOpen, setSimulatorOpen] = useState(false);
-  const [simulatorTarget, setSimulatorTarget] =
     useState<PromoScenario | null>(null);
   const [productSelection, setProductSelection] =
     useState<ProductSelectionPayload | null>(null);
@@ -600,12 +596,6 @@ export function PromoScenariosView({
     );
     setRulesTarget((current) => (current?.id === promo.id ? promo : current));
     setProductsTarget((current) => (current?.id === promo.id ? promo : current));
-    setSimulatorTarget((current) => (current?.id === promo.id ? promo : current));
-  }, []);
-
-  const openSimulator = useCallback((promo: PromoScenario) => {
-    setSimulatorTarget(promo);
-    setSimulatorOpen(true);
   }, []);
 
   const clonePromo = useCallback(
@@ -1028,13 +1018,6 @@ export function PromoScenariosView({
             <Button size="sm" variant="secondary" onClick={() => openRules(promo)}>
               Rules
             </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => openSimulator(promo)}
-            >
-              Simulator
-            </Button>
             {approvalActionsFor(promo).map((action) => {
               const submitKey = approvalSubmitKey(promo.id, action.status);
               return (
@@ -1065,7 +1048,6 @@ export function PromoScenariosView({
       openEdit,
       openProducts,
       openRules,
-      openSimulator,
     ],
   );
 
@@ -1330,27 +1312,6 @@ export function PromoScenariosView({
             <FeedbackThread promoId={editingId} />
           ) : null}
         </Stack>
-      </Modal>
-
-      <Modal
-        open={simulatorOpen}
-        onClose={() => setSimulatorOpen(false)}
-        title={`Simulator${simulatorTarget ? `: ${simulatorTarget.namaPromo}` : ""}`}
-        size="lg"
-        footer={
-          <Button variant="secondary" onClick={() => setSimulatorOpen(false)}>
-            Tutup
-          </Button>
-        }
-      >
-        {simulatorTarget ? (
-          <PromoSimulatorPanel
-            promo={simulatorTarget}
-            brandName={
-              brandNameById.get(simulatorTarget.brandId) ?? simulatorTarget.brandId
-            }
-          />
-        ) : null}
       </Modal>
 
       <Modal

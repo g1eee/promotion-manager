@@ -28,6 +28,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useActiveBrand } from "../_components/BrandContext";
+import { CampaignCalendar } from "./CampaignCalendar";
 
 interface ApiErrorBody {
   readonly message?: string;
@@ -438,6 +439,17 @@ export function DashboardView() {
         <PromotionTimeline promos={summary.upcomingPromos} />
         <ActionCenter summary={summary} />
       </div>
+
+      <section aria-labelledby="cc-calendar-heading">
+        <Stack gap="md">
+          <h2 id="cc-calendar-heading" className="pms-cc__section-title">
+            Kalender Campaign
+          </h2>
+          <Card padding="none">
+            <CampaignCalendar campaigns={summary.calendarCampaigns} />
+          </Card>
+        </Stack>
+      </section>
 
       <ActiveCampaigns campaigns={summary.activeCampaigns} />
 

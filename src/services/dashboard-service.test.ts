@@ -406,5 +406,13 @@ describe("DashboardService", () => {
       progress: 25,
       daysUntilEnd: 6,
     });
+
+    // Calendar lists every campaign with its full date range.
+    expect(summary.calendarCampaigns).toHaveLength(1);
+    expect(summary.calendarCampaigns[0]).toMatchObject({
+      name: "June Payday",
+      startsAt: day(0),
+      endsAt: day(6),
+    });
   });
 });

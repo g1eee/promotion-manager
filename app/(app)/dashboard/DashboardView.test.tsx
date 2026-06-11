@@ -96,6 +96,17 @@ const summary = {
       daysUntilEnd: 6,
     },
   ],
+  calendarCampaigns: [
+    {
+      id: "campaign-1",
+      name: "Payday Campaign",
+      brandId: "brand-kalova",
+      brandName: "Kalova",
+      status: "Active",
+      startsAt: "2026-01-01T00:00:00.000Z",
+      endsAt: "2026-01-07T00:00:00.000Z",
+    },
+  ],
   recomputedAt: "2026-01-01T09:20:00.000Z",
 };
 
@@ -142,5 +153,7 @@ describe("DashboardView", () => {
     // Active campaign project card
     expect(screen.getByText("Active Campaigns")).toBeInTheDocument();
     expect(screen.getAllByText("Payday Campaign").length).toBeGreaterThan(0);
+    // Campaign calendar
+    expect(screen.getByText("Kalender Campaign")).toBeInTheDocument();
   });
 });
