@@ -95,14 +95,16 @@ function DashboardSkeleton() {
   return (
     <Stack gap="lg">
       <SkeletonCard lines={3} label="Memuat ringkasan" />
-      <div className="pms-cc__grid">
-        <SkeletonCard lines={4} label="Memuat timeline" />
-        <SkeletonCard lines={4} label="Memuat action center" />
-      </div>
-      <div className="pms-cc__cards">
-        {Array.from({ length: 3 }, (_, index) => (
-          <SkeletonCard key={index} lines={3} label="Memuat campaign" />
-        ))}
+      <SkeletonCard lines={1} label="Memuat antrian" />
+      <div className="pms-cc__layout">
+        <div className="pms-cc__main">
+          <SkeletonCard lines={4} label="Memuat timeline" />
+          <SkeletonCard lines={4} label="Memuat aktivitas" />
+        </div>
+        <div className="pms-cc__rail">
+          <SkeletonCard lines={5} label="Memuat kalender" />
+          <SkeletonCard lines={3} label="Memuat campaign" />
+        </div>
       </div>
     </Stack>
   );
@@ -232,30 +234,31 @@ function ActionCenter({
   ];
 
   return (
-    <Card title="Needs Attention" subtitle="Antrian kerja personal">
-      <div className="pms-cc-actions">
+    <section className="pms-cc-kpi" aria-label="Needs Attention">
+      <span className="pms-cc-kpi__heading">Needs Attention</span>
+      <div className="pms-cc-kpi__items">
         {blocks.map((block) => {
           const Icon = block.icon;
           return (
             <div
               key={block.key}
-              className={`pms-cc-action pms-cc-action--${block.tone}`}
+              className={`pms-cc-kpi__item pms-cc-kpi__item--${block.tone}`}
             >
-              <span className="pms-cc-action__icon">
-                <Icon size={18} aria-hidden="true" />
+              <span className="pms-cc-kpi__icon">
+                <Icon size={16} aria-hidden="true" />
               </span>
-              <strong className="pms-cc-action__count">
+              <strong className="pms-cc-kpi__count">
                 {number(block.count)}
               </strong>
-              <span className="pms-cc-action__label">{block.label}</span>
+              <span className="pms-cc-kpi__label">{block.label}</span>
             </div>
           );
         })}
       </div>
-      <Link href="/promo/execution" className="pms-cc-actions__link">
+      <Link href="/promo/execution" className="pms-cc-kpi__link">
         Buka Antrian <ArrowRight size={14} aria-hidden="true" />
       </Link>
-    </Card>
+    </section>
   );
 }
 
@@ -264,48 +267,39 @@ function ActiveCampaigns({
 }: {
   readonly campaigns: readonly ActiveCampaignCard[];
 }) {
-  if (campaigns.length === 0) {
-    return (
-      <Card title="Active Campaigns" subtitle="Campaign yang sedang berjalan">
-        <p className="pms-cc-empty">Belum ada campaign aktif.</p>
-      </Card>
-    );
-  }
   return (
-    <section aria-labelledby="cc-active-heading">
-      <Stack gap="md">
-        <h2 id="cc-active-heading" className="pms-cc__section-title">
-          Active Campaigns
-        </h2>
-        <div className="pms-cc__cards">
+    <Card title="Active Campaigns" subtitle="Sedang berjalan">
+      {campaigns.length === 0 ? (
+        <p className="pms-cc-empty">Belum ada campaign aktif.</p>
+      ) : (
+        <ul className="pms-cc-active">
           {campaigns.map((campaign) => (
-            <Card key={campaign.id} className="pms-cc-project">
-              <div className="pms-cc-project__head">
-                <strong className="pms-cc-project__name">{campaign.name}</strong>
+            <li key={campaign.id} className="pms-cc-active__item">
+              <div className="pms-cc-active__head">
+                <Link
+                  href={`/promo/campaigns/${campaign.id}`}
+                  className="pms-cc-active__name"
+                >
+                  {campaign.name}
+                </Link>
                 <StatusBadge status={campaign.status} />
               </div>
-              <div className="pms-cc-project__progress">
+              <div className="pms-cc-active__progress">
                 <div
-                  className="pms-cc-project__bar"
+                  className="pms-cc-active__bar"
                   style={{ width: `${campaign.progress}%` }}
                 />
               </div>
-              <div className="pms-cc-project__meta">
-                <span>{campaign.progress}% selesai</span>
+              <div className="pms-cc-active__meta">
+                <span>{campaign.progress}%</span>
                 <span>{number(campaign.promoCount)} promo</span>
                 <span>{endsLabel(campaign.daysUntilEnd)}</span>
               </div>
-              <Link
-                href={`/promo/campaigns/${campaign.id}`}
-                className="pms-cc-project__link"
-              >
-                Buka <ArrowRight size={14} aria-hidden="true" />
-              </Link>
-            </Card>
+            </li>
           ))}
-        </div>
-      </Stack>
-    </section>
+        </ul>
+      )}
+    </Card>
   );
 }
 
@@ -435,25 +429,21 @@ export function DashboardView() {
     <Stack gap="lg" className="pms-cc">
       <HeroSummary summary={summary} brandLabel={brandLabel} />
 
-      <div className="pms-cc__grid">
-        <PromotionTimeline promos={summary.upcomingPromos} />
-        <ActionCenter summary={summary} />
-      </div>
+      <ActionCenter summary={summary} />
 
-      <section aria-labelledby="cc-calendar-heading">
-        <Stack gap="md">
-          <h2 id="cc-calendar-heading" className="pms-cc__section-title">
-            Kalender Campaign
-          </h2>
-          <Card padding="none">
+      <div className="pms-cc__layout">
+        <div className="pms-cc__main">
+          <PromotionTimeline promos={summary.upcomingPromos} />
+          <RecentActivity summary={summary} />
+        </div>
+
+        <aside className="pms-cc__rail">
+          <Card title="Kalender Campaign" subtitle="Jadwal bulanan" padding="none">
             <CampaignCalendar campaigns={summary.calendarCampaigns} />
           </Card>
-        </Stack>
-      </section>
-
-      <ActiveCampaigns campaigns={summary.activeCampaigns} />
-
-      <RecentActivity summary={summary} />
+          <ActiveCampaigns campaigns={summary.activeCampaigns} />
+        </aside>
+      </div>
     </Stack>
   );
 }
