@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Card,
   EmptyState,
@@ -9,11 +10,23 @@ import {
   StatusBadge,
 } from "@ui/components";
 import type {
+  ActiveCampaignCard,
   DashboardSummary,
   RecentApprovalActivity,
   RecentCampaignActivity,
   RecentPromoActivity,
+  UpcomingPromo,
 } from "@services/index";
+import {
+  ArrowRight,
+  CalendarClock,
+  CircleCheck,
+  CircleDot,
+  MessageSquare,
+  Rocket,
+  Tag as Tag2,
+  TriangleAlert,
+} from "lucide-react";
 import { useActiveBrand } from "../_components/BrandContext";
 
 interface ApiErrorBody {
@@ -30,15 +43,6 @@ class ApiError extends Error {
   }
 }
 
-type MetricTone = "info" | "warning" | "success" | "danger" | "neutral";
-
-interface MetricCardProps {
-  readonly label: string;
-  readonly value: number;
-  readonly caption: string;
-  readonly tone: MetricTone;
-}
-
 async function readJson<T>(response: Response): Promise<T> {
   const text = await response.text();
   const data = text ? (JSON.parse(text) as unknown) : null;
@@ -52,130 +56,319 @@ function number(value: number): string {
   return new Intl.NumberFormat("id-ID").format(value);
 }
 
-function dateTime(value: Date | string): string {
+function timeOfDay(value: Date | string): string {
+  return new Intl.DateTimeFormat("id-ID", { timeStyle: "short" }).format(
+    new Date(value),
+  );
+}
+
+function dayMonth(value: Date | string): string {
   return new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
+    day: "2-digit",
+    month: "short",
   }).format(new Date(value));
 }
 
-function metricCard({
-  label,
-  value,
-  caption,
-  tone,
-}: MetricCardProps) {
-  return (
-    <Card className={`pms-dashboard-metric pms-dashboard-metric--${tone}`}>
-      <span className="pms-dashboard-metric__label">{label}</span>
-      <strong className="pms-dashboard-metric__value">{number(value)}</strong>
-      <span className="pms-dashboard-metric__caption">{caption}</span>
-    </Card>
-  );
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 11) return "Selamat pagi";
+  if (hour < 15) return "Selamat siang";
+  if (hour < 19) return "Selamat sore";
+  return "Selamat malam";
+}
+
+function startsLabel(daysUntilStart: number): string {
+  if (daysUntilStart <= 0) return "Mulai hari ini";
+  if (daysUntilStart === 1) return "Mulai besok";
+  return `Mulai ${daysUntilStart} hari lagi`;
+}
+
+function endsLabel(daysUntilEnd: number): string {
+  if (daysUntilEnd < 0) return "Sudah berakhir";
+  if (daysUntilEnd === 0) return "Berakhir hari ini";
+  if (daysUntilEnd === 1) return "Berakhir besok";
+  return `Berakhir ${daysUntilEnd} hari lagi`;
 }
 
 function DashboardSkeleton() {
   return (
     <Stack gap="lg">
-      <div className="pms-dashboard__metrics" aria-label="Memuat metrik dashboard">
-        {Array.from({ length: 4 }, (_, index) => (
-          <SkeletonCard key={index} lines={2} label="Memuat widget dashboard" />
-        ))}
+      <SkeletonCard lines={3} label="Memuat ringkasan" />
+      <div className="pms-cc__grid">
+        <SkeletonCard lines={4} label="Memuat timeline" />
+        <SkeletonCard lines={4} label="Memuat action center" />
       </div>
-      <div className="pms-dashboard__split">
-        <SkeletonCard lines={4} label="Memuat work queue" />
-        <SkeletonCard lines={4} label="Memuat ringkasan historis" />
-      </div>
-      <div className="pms-dashboard__recent-grid">
+      <div className="pms-cc__cards">
         {Array.from({ length: 3 }, (_, index) => (
-          <SkeletonCard key={index} lines={4} label="Memuat recent activity" />
+          <SkeletonCard key={index} lines={3} label="Memuat campaign" />
         ))}
       </div>
     </Stack>
   );
 }
 
-function RecentCampaigns({
-  campaigns,
+function HeroSummary({
+  summary,
+  brandLabel,
 }: {
-  readonly campaigns: readonly RecentCampaignActivity[];
+  readonly summary: DashboardSummary;
+  readonly brandLabel: string;
 }) {
+  const needsReview = summary.workQueue.pendingReviews;
+  const startingSoon = summary.upcomingPromos.length;
+  const activeCampaigns = summary.activeCampaigns.length;
+
   return (
-    <Card title="Recent Campaigns" subtitle="Campaign terbaru">
-      {campaigns.length === 0 ? (
-        <p className="pms-dashboard-empty">Belum ada campaign.</p>
-      ) : (
-        <div className="pms-dashboard-list">
-          {campaigns.map((campaign) => (
-            <div key={campaign.id} className="pms-dashboard-list__item">
-              <div className="pms-dashboard-list__main">
-                <strong>{campaign.name}</strong>
-                <span>
-                  {campaign.brandName} · {number(campaign.promoCount)} promo ·{" "}
-                  {dateTime(campaign.occurredAt)}
-                </span>
-              </div>
-              <StatusBadge status={campaign.status} />
-            </div>
-          ))}
-        </div>
-      )}
-    </Card>
+    <section className="pms-cc-hero">
+      <div className="pms-cc-hero__main">
+        <p className="pms-cc-hero__eyebrow">Brand {brandLabel}</p>
+        <h1 className="pms-cc-hero__title">{greeting()}, mari kelola promo 👋</h1>
+        <p className="pms-cc-hero__lead">
+          {needsReview > 0 ? (
+            <strong>{needsReview} promo perlu direview</strong>
+          ) : (
+            <span>Tidak ada promo menunggu review</span>
+          )}
+          <span className="pms-cc-hero__dot">•</span>
+          {startingSoon} promo mulai dalam 7 hari
+          <span className="pms-cc-hero__dot">•</span>
+          {activeCampaigns} campaign aktif
+        </p>
+      </div>
+      <div className="pms-cc-hero__actions">
+        <Link href="/promo/scenarios" className="pms-btn pms-btn--primary pms-btn--md">
+          <Rocket size={16} aria-hidden="true" /> Buat Promo
+        </Link>
+        <Link href="/promo/execution" className="pms-btn pms-btn--secondary pms-btn--md">
+          Buka Antrian
+        </Link>
+      </div>
+    </section>
   );
 }
 
-function RecentPromos({
+function PromotionTimeline({
   promos,
 }: {
-  readonly promos: readonly RecentPromoActivity[];
+  readonly promos: readonly UpcomingPromo[];
 }) {
   return (
-    <Card title="Recent Promos" subtitle="Promo terbaru">
+    <Card title="Promotion Timeline" subtitle="Promo yang akan datang">
       {promos.length === 0 ? (
-        <p className="pms-dashboard-empty">Belum ada promo.</p>
+        <p className="pms-cc-empty">Tidak ada promo dalam 7 hari ke depan.</p>
       ) : (
-        <div className="pms-dashboard-list">
+        <ol className="pms-cc-timeline">
           {promos.map((promo) => (
-            <div key={promo.id} className="pms-dashboard-list__item">
-              <div className="pms-dashboard-list__main">
-                <strong>{promo.name}</strong>
-                <span>
-                  {promo.campaignName} · {promo.promoType} ·{" "}
-                  {number(promo.productCount)} produk
+            <li key={promo.id} className="pms-cc-timeline__item">
+              <div className="pms-cc-timeline__date">
+                <CalendarClock size={14} aria-hidden="true" />
+                <span>{dayMonth(promo.startsAt)}</span>
+              </div>
+              <div className="pms-cc-timeline__body">
+                <Link
+                  href={`/promo/scenarios?editPromoId=${encodeURIComponent(promo.id)}`}
+                  className="pms-cc-timeline__name"
+                >
+                  {promo.name}
+                </Link>
+                <span className="pms-cc-timeline__meta">
+                  {promo.campaignName} · {promo.promoType}
                 </span>
               </div>
-              <StatusBadge status={promo.status} />
-            </div>
+              <span className="pms-cc-timeline__when">
+                {startsLabel(promo.daysUntilStart)}
+              </span>
+            </li>
           ))}
-        </div>
+        </ol>
       )}
     </Card>
   );
 }
 
-function RecentApprovals({
-  approvals,
+interface ActionBlock {
+  readonly key: string;
+  readonly label: string;
+  readonly count: number;
+  readonly tone: "review" | "execution" | "rejected" | "feedback";
+  readonly icon: typeof CircleDot;
+}
+
+function ActionCenter({
+  summary,
 }: {
-  readonly approvals: readonly RecentApprovalActivity[];
+  readonly summary: DashboardSummary;
 }) {
+  const blocks: ActionBlock[] = [
+    {
+      key: "review",
+      label: "Pending Review",
+      count: summary.workQueue.pendingReviews,
+      tone: "review",
+      icon: CircleDot,
+    },
+    {
+      key: "execution",
+      label: "Waiting Execution",
+      count: summary.workQueue.waitingForExecution,
+      tone: "execution",
+      icon: Rocket,
+    },
+    {
+      key: "rejected",
+      label: "Rejected Promo",
+      count: summary.workQueue.rejectedPromos,
+      tone: "rejected",
+      icon: TriangleAlert,
+    },
+    {
+      key: "feedback",
+      label: "Unread Feedback",
+      count: summary.workQueue.unreadFeedback,
+      tone: "feedback",
+      icon: MessageSquare,
+    },
+  ];
+
   return (
-    <Card title="Recent Approvals" subtitle="Approval terbaru">
-      {approvals.length === 0 ? (
-        <p className="pms-dashboard-empty">Belum ada approval.</p>
-      ) : (
-        <div className="pms-dashboard-list">
-          {approvals.map((approval) => (
-            <div key={approval.id} className="pms-dashboard-list__item">
-              <div className="pms-dashboard-list__main">
-                <strong>{approval.promoName}</strong>
-                <span>
-                  {approval.campaignName} · {dateTime(approval.occurredAt)}
-                </span>
-              </div>
-              <StatusBadge status={approval.status} />
+    <Card title="Needs Attention" subtitle="Antrian kerja personal">
+      <div className="pms-cc-actions">
+        {blocks.map((block) => {
+          const Icon = block.icon;
+          return (
+            <div
+              key={block.key}
+              className={`pms-cc-action pms-cc-action--${block.tone}`}
+            >
+              <span className="pms-cc-action__icon">
+                <Icon size={18} aria-hidden="true" />
+              </span>
+              <strong className="pms-cc-action__count">
+                {number(block.count)}
+              </strong>
+              <span className="pms-cc-action__label">{block.label}</span>
             </div>
+          );
+        })}
+      </div>
+      <Link href="/promo/execution" className="pms-cc-actions__link">
+        Buka Antrian <ArrowRight size={14} aria-hidden="true" />
+      </Link>
+    </Card>
+  );
+}
+
+function ActiveCampaigns({
+  campaigns,
+}: {
+  readonly campaigns: readonly ActiveCampaignCard[];
+}) {
+  if (campaigns.length === 0) {
+    return (
+      <Card title="Active Campaigns" subtitle="Campaign yang sedang berjalan">
+        <p className="pms-cc-empty">Belum ada campaign aktif.</p>
+      </Card>
+    );
+  }
+  return (
+    <section aria-labelledby="cc-active-heading">
+      <Stack gap="md">
+        <h2 id="cc-active-heading" className="pms-cc__section-title">
+          Active Campaigns
+        </h2>
+        <div className="pms-cc__cards">
+          {campaigns.map((campaign) => (
+            <Card key={campaign.id} className="pms-cc-project">
+              <div className="pms-cc-project__head">
+                <strong className="pms-cc-project__name">{campaign.name}</strong>
+                <StatusBadge status={campaign.status} />
+              </div>
+              <div className="pms-cc-project__progress">
+                <div
+                  className="pms-cc-project__bar"
+                  style={{ width: `${campaign.progress}%` }}
+                />
+              </div>
+              <div className="pms-cc-project__meta">
+                <span>{campaign.progress}% selesai</span>
+                <span>{number(campaign.promoCount)} promo</span>
+                <span>{endsLabel(campaign.daysUntilEnd)}</span>
+              </div>
+              <Link
+                href={`/promo/campaigns/${campaign.id}`}
+                className="pms-cc-project__link"
+              >
+                Buka <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </Card>
           ))}
         </div>
+      </Stack>
+    </section>
+  );
+}
+
+type ActivityItem = {
+  readonly id: string;
+  readonly at: Date;
+  readonly icon: typeof CircleCheck;
+  readonly text: string;
+};
+
+function buildActivityFeed(summary: DashboardSummary): ActivityItem[] {
+  const items: ActivityItem[] = [];
+  for (const c of summary.recentActivity.campaigns as RecentCampaignActivity[]) {
+    items.push({
+      id: `c-${c.id}`,
+      at: new Date(c.occurredAt),
+      icon: CalendarClock,
+      text: `Campaign "${c.name}" diperbarui`,
+    });
+  }
+  for (const p of summary.recentActivity.promos as RecentPromoActivity[]) {
+    items.push({
+      id: `p-${p.id}`,
+      at: new Date(p.occurredAt),
+      icon: Tag2,
+      text: `Promo "${p.name}" diperbarui (${p.status})`,
+    });
+  }
+  for (const a of summary.recentActivity.approvals as RecentApprovalActivity[]) {
+    items.push({
+      id: `a-${a.id}`,
+      at: new Date(a.occurredAt),
+      icon: CircleCheck,
+      text: `${a.promoName} → ${a.status}`,
+    });
+  }
+  return items.sort((x, y) => y.at.getTime() - x.at.getTime()).slice(0, 8);
+}
+
+function RecentActivity({
+  summary,
+}: {
+  readonly summary: DashboardSummary;
+}) {
+  const items = useMemo(() => buildActivityFeed(summary), [summary]);
+  return (
+    <Card title="Recent Activity" subtitle="Aktivitas terbaru">
+      {items.length === 0 ? (
+        <p className="pms-cc-empty">Belum ada aktivitas.</p>
+      ) : (
+        <ul className="pms-cc-feed">
+          {items.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.id} className="pms-cc-feed__item">
+                <span className="pms-cc-feed__time">{timeOfDay(item.at)}</span>
+                <span className="pms-cc-feed__icon">
+                  <Icon size={14} aria-hidden="true" />
+                </span>
+                <span className="pms-cc-feed__text">{item.text}</span>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </Card>
   );
@@ -213,137 +406,42 @@ export function DashboardView() {
     void loadDashboard();
   }, [loadDashboard]);
 
-  const activeBrandLabel = useMemo(
+  const brandLabel = useMemo(
     () => summary?.brandName ?? activeBrand?.label ?? activeBrandId,
     [activeBrand?.label, activeBrandId, summary?.brandName],
   );
 
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (loadError) {
+    return (
+      <EmptyState
+        title="Gagal memuat Dashboard"
+        description={loadError}
+        actionLabel="Refresh"
+        onAction={() => void loadDashboard()}
+      />
+    );
+  }
+
+  if (!summary) {
+    return null;
+  }
+
   return (
-    <Stack gap="lg" className="pms-dashboard">
-      <div className="pms-dashboard__header">
-        <div>
-          <h1 className="pms-page__title">Dashboard</h1>
-          <p className="pms-dashboard__scope">Brand {activeBrandLabel}</p>
-        </div>
-        {summary && !loading ? (
-          <StatusBadge
-            status={`Updated ${dateTime(summary.recomputedAt)}`}
-            tone="info"
-          />
-        ) : null}
+    <Stack gap="lg" className="pms-cc">
+      <HeroSummary summary={summary} brandLabel={brandLabel} />
+
+      <div className="pms-cc__grid">
+        <PromotionTimeline promos={summary.upcomingPromos} />
+        <ActionCenter summary={summary} />
       </div>
 
-      {loading ? (
-        <DashboardSkeleton />
-      ) : loadError ? (
-        <EmptyState
-          title="Gagal memuat Dashboard"
-          description={loadError}
-          actionLabel="Refresh"
-          onAction={() => void loadDashboard()}
-        />
-      ) : summary ? (
-        <>
-          <section aria-labelledby="dashboard-actionable-heading">
-            <Stack gap="md">
-              <h2
-                id="dashboard-actionable-heading"
-                className="pms-dashboard__section-title"
-              >
-                Perlu Aksi
-              </h2>
-              <div className="pms-dashboard__metrics">
-                {metricCard({
-                  label: "Promo Pending Review",
-                  value: summary.widgets.pendingReviewPromos,
-                  caption: "Status Review",
-                  tone: "warning",
-                })}
-                {metricCard({
-                  label: "Waiting for Execution",
-                  value: summary.widgets.waitingForExecutionPromos,
-                  caption: "Approved belum Completed",
-                  tone: "info",
-                })}
-                {metricCard({
-                  label: "Active Promos",
-                  value: summary.widgets.activePromos,
-                  caption: "Sedang berjalan",
-                  tone: "success",
-                })}
-                {metricCard({
-                  label: "Completed Promos",
-                  value: summary.widgets.completedPromos,
-                  caption: "Selesai",
-                  tone: "neutral",
-                })}
-              </div>
-            </Stack>
-          </section>
+      <ActiveCampaigns campaigns={summary.activeCampaigns} />
 
-          <div className="pms-dashboard__split">
-            <Card title="Work Queue" subtitle="Antrian kerja personal">
-              <div className="pms-dashboard-queue">
-                <div className="pms-dashboard-queue__item">
-                  <span>Pending Reviews</span>
-                  <strong>{number(summary.workQueue.pendingReviews)}</strong>
-                </div>
-                <div className="pms-dashboard-queue__item">
-                  <span>Rejected Promos</span>
-                  <strong>{number(summary.workQueue.rejectedPromos)}</strong>
-                </div>
-                <div className="pms-dashboard-queue__item">
-                  <span>Unread Feedback</span>
-                  <strong>{number(summary.workQueue.unreadFeedback)}</strong>
-                </div>
-                <div className="pms-dashboard-queue__item">
-                  <span>Waiting for Execution</span>
-                  <strong>{number(summary.workQueue.waitingForExecution)}</strong>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Ringkasan Historis" subtitle="Snapshot data terkini">
-              <div className="pms-dashboard-history">
-                <div>
-                  <span>Total Campaign</span>
-                  <strong>{number(summary.widgets.totalCampaigns)}</strong>
-                </div>
-                <div>
-                  <span>Total Promo</span>
-                  <strong>{number(summary.widgets.totalPromos)}</strong>
-                </div>
-                <div className="pms-dashboard-history__statuses">
-                  <StatusBadge status={`Draft ${summary.widgets.draftPromos}`} />
-                  <StatusBadge status={`Review ${summary.widgets.reviewPromos}`} tone="info" />
-                  <StatusBadge status={`Approved ${summary.widgets.approvedPromos}`} tone="success" />
-                  <StatusBadge status={`Rejected ${summary.widgets.rejectedPromos}`} tone="danger" />
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <section aria-labelledby="dashboard-recent-heading">
-            <Stack gap="md">
-              <h2
-                id="dashboard-recent-heading"
-                className="pms-dashboard__section-title"
-              >
-                Recent Activity
-              </h2>
-              <div className="pms-dashboard__recent-grid">
-                <RecentCampaigns
-                  campaigns={summary.recentActivity.campaigns}
-                />
-                <RecentPromos promos={summary.recentActivity.promos} />
-                <RecentApprovals
-                  approvals={summary.recentActivity.approvals}
-                />
-              </div>
-            </Stack>
-          </section>
-        </>
-      ) : null}
+      <RecentActivity summary={summary} />
     </Stack>
   );
 }

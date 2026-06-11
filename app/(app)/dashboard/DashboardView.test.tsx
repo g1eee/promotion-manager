@@ -68,6 +68,34 @@ const summary = {
       },
     ],
   },
+  upcomingPromos: [
+    {
+      id: "promo-up-1",
+      name: "Flash Sale Serbu",
+      brandId: "brand-kalova",
+      brandName: "Kalova",
+      campaignId: "campaign-1",
+      campaignName: "Payday Campaign",
+      promoType: "Flash Sale",
+      status: "Approved",
+      startsAt: "2026-01-03T00:00:00.000Z",
+      daysUntilStart: 2,
+    },
+  ],
+  activeCampaigns: [
+    {
+      id: "campaign-1",
+      name: "Payday Campaign",
+      brandId: "brand-kalova",
+      brandName: "Kalova",
+      status: "Active",
+      promoCount: 4,
+      progress: 25,
+      startsAt: "2026-01-01T00:00:00.000Z",
+      endsAt: "2026-01-07T00:00:00.000Z",
+      daysUntilEnd: 6,
+    },
+  ],
   recomputedAt: "2026-01-01T09:20:00.000Z",
 };
 
@@ -90,7 +118,7 @@ describe("DashboardView", () => {
     window.sessionStorage.clear();
   });
 
-  it("loads the active Brand dashboard and renders actionable metrics", async () => {
+  it("loads the active Brand dashboard and renders the Command Center", async () => {
     render(
       <BrandProvider initialBrandId="kalova">
         <DashboardView />
@@ -98,16 +126,21 @@ describe("DashboardView", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Promo Pending Review")).toBeInTheDocument();
+      expect(screen.getByText("Needs Attention")).toBeInTheDocument();
     });
 
     expect(fetch).toHaveBeenCalledWith("/api/dashboard?brandId=kalova&limit=5", {
       cache: "no-store",
     });
-    expect(screen.getByText("Brand Kalova")).toBeInTheDocument();
-    expect(screen.getAllByText("Waiting for Execution").length).toBeGreaterThan(0);
+    // Hero summary + Action Center
+    expect(screen.getByText("Pending Review")).toBeInTheDocument();
+    expect(screen.getByText("Waiting Execution")).toBeInTheDocument();
     expect(screen.getByText("Unread Feedback")).toBeInTheDocument();
-    expect(screen.getByText("Payday Campaign")).toBeInTheDocument();
-    expect(screen.getAllByText("Payday Voucher").length).toBeGreaterThan(0);
+    // Promotion Timeline (upcoming promo)
+    expect(screen.getByText("Promotion Timeline")).toBeInTheDocument();
+    expect(screen.getByText("Flash Sale Serbu")).toBeInTheDocument();
+    // Active campaign project card
+    expect(screen.getByText("Active Campaigns")).toBeInTheDocument();
+    expect(screen.getAllByText("Payday Campaign").length).toBeGreaterThan(0);
   });
 });
