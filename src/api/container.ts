@@ -17,6 +17,8 @@ import { BrandStatus } from "@domain/enums";
 import type { Brand } from "@domain/types";
 import { loadConfig } from "@/config";
 import { InMemoryPersistence } from "@persistence/in-memory";
+import type { Persistence } from "@persistence/transaction";
+import { getPrismaPersistence } from "@persistence/prisma/client";
 import { BrandService } from "@services/brand-service";
 import { ApprovalService } from "@services/approval-service";
 import { CampaignService } from "@services/campaign-service";
@@ -39,7 +41,7 @@ import { PromoSimulatorService } from "@services/promo-simulator-service";
 import { PromoService } from "@services/promo-service";
 
 interface PmsGlobal {
-  __pmsPersistence?: InMemoryPersistence;
+  __pmsPersistence?: Persistence;
   __pmsSeedPromise?: Promise<void>;
 }
 
@@ -75,21 +77,33 @@ const SAMPLE_BRANDS: readonly Brand[] = [
   sampleBrand("brand-atria", "ATRIA", "ATRIA"),
 ];
 
-/** Lazily create and memoize the shared persistence instance. */
-function getPersistence(): InMemoryPersistence {
+/**
+ * Lazily create and memoize the shared persistence instance.
+ *
+ * When `DATABASE_URL` is set, the Prisma (Postgres) adapter is used so data
+ * persists across deploys/cold starts. Otherwise it falls back to the
+ * in-memory adapter (local/tests), keeping the app runnable with zero config.
+ */
+function getPersistence(): Persistence {
   if (!pmsGlobal.__pmsPersistence) {
-    pmsGlobal.__pmsPersistence = new InMemoryPersistence();
+    const hasDatabase = Boolean(process.env.DATABASE_URL?.trim());
+    pmsGlobal.__pmsPersistence = hasDatabase
+      ? getPrismaPersistence()
+      : new InMemoryPersistence();
   }
   return pmsGlobal.__pmsPersistence;
 }
 
 /** Seed the sample Brands exactly once for the process. */
-async function ensureSeeded(persistence: InMemoryPersistence): Promise<void> {
+async function ensureSeeded(persistence: Persistence): Promise<void> {
   if (!pmsGlobal.__pmsSeedPromise) {
     pmsGlobal.__pmsSeedPromise = (async () => {
       for (const brand of SAMPLE_BRANDS) {
         try {
-          await persistence.brands.insert(brand);
+          const existing = await persistence.brands.findByBrandId(brand.brandId);
+          if (!existing) {
+            await persistence.brands.insert(brand);
+          }
         } catch {
           // Already present (idempotent seed); ignore duplicate inserts.
         }
@@ -105,7 +119,7 @@ async function ensureSeeded(persistence: InMemoryPersistence): Promise<void> {
 
 /** The services exposed to Route Handlers. */
 export interface ApiContainer {
-  readonly persistence: InMemoryPersistence;
+  readonly persistence: Persistence;
   readonly brandService: BrandService;
   readonly campaignService: CampaignService;
   readonly costConfigService: CostConfigService;

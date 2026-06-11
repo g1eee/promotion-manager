@@ -1,0 +1,175 @@
+// Prisma schema for the Promotion Management System (PMS).
+//
+// Mirrors the domain entities (src/domain/types.ts) and the versioned SQL
+// migration (src/persistence/migrations). Enums are stored as their canonical
+// string values so the database matches the domain vocabulary 1:1. The Prisma
+// adapter (src/persistence/prisma) maps these rows to/from the framework-
+// agnostic domain types consumed by the services.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Brand {
+  id          String   @id
+  brandId     String   @unique @map("brand_id")
+  brandName   String   @map("brand_name")
+  displayName String   @map("display_name")
+  status      String
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @map("created_at")
+  updatedAt   DateTime @map("updated_at")
+
+  products      Product[]
+  campaigns     Campaign[]
+  promos        PromoScenario[]
+  costConfig    CostConfiguration?
+
+  @@map("brands")
+}
+
+model Product {
+  id         String   @id
+  brandId    String   @map("brand_id")
+  productId  String   @map("product_id")
+  namaProduk String   @map("nama_produk")
+  kategori   String
+  hpp        Decimal  @db.Decimal(14, 2)
+  hargaJual  Decimal  @map("harga_jual") @db.Decimal(14, 2)
+  status     String
+  createdBy  String   @map("created_by")
+  createdAt  DateTime @map("created_at")
+  updatedAt  DateTime @map("updated_at")
+
+  brand Brand @relation(fields: [brandId], references: [id])
+
+  @@unique([brandId, productId])
+  @@index([brandId])
+  @@map("products")
+}
+
+model CostConfiguration {
+  id                  String   @id
+  brandId             String   @unique @map("brand_id")
+  adminFee            Decimal  @map("admin_fee") @db.Decimal(5, 2)
+  shippingFee         Decimal  @map("shipping_fee") @db.Decimal(5, 2)
+  promoXtra           Decimal  @map("promo_xtra") @db.Decimal(5, 2)
+  feePesanan          Decimal  @map("fee_pesanan") @db.Decimal(5, 2)
+  campaignFee         Decimal  @map("campaign_fee") @db.Decimal(5, 2)
+  promosiFee          Decimal  @map("promosi_fee") @db.Decimal(5, 2)
+  marketingFee        Decimal  @map("marketing_fee") @db.Decimal(5, 2)
+  adsSpending         Decimal  @map("ads_spending") @db.Decimal(5, 2)
+  affiliateCommission Decimal  @map("affiliate_commission") @db.Decimal(5, 2)
+  operatingCost       Decimal  @map("operating_cost") @db.Decimal(5, 2)
+  isActive            Boolean  @map("is_active")
+  updatedAt           DateTime @map("updated_at")
+
+  brand Brand @relation(fields: [brandId], references: [id])
+
+  @@map("cost_configurations")
+}
+
+model Campaign {
+  id             String   @id
+  brandId        String   @map("brand_id")
+  nama           String
+  tanggalMulai   DateTime @map("tanggal_mulai")
+  tanggalSelesai DateTime @map("tanggal_selesai")
+  status         String
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @map("created_at")
+  updatedAt      DateTime @map("updated_at")
+
+  brand  Brand           @relation(fields: [brandId], references: [id])
+  promos PromoScenario[]
+
+  @@index([brandId])
+  @@map("campaigns")
+}
+
+model PromoScenario {
+  id              String   @id
+  brandId         String   @map("brand_id")
+  campaignId      String   @map("campaign_id")
+  namaPromo       String   @map("nama_promo")
+  promoType       String   @map("promo_type")
+  tanggalMulai    DateTime @map("tanggal_mulai")
+  tanggalSelesai  DateTime @map("tanggal_selesai")
+  status          String
+  executionStatus String?  @map("execution_status")
+  rules           Json
+  productRefs     Json     @map("product_refs")
+  createdBy       String   @map("created_by")
+  createdAt       DateTime @map("created_at")
+  updatedAt       DateTime @map("updated_at")
+
+  brand    Brand    @relation(fields: [brandId], references: [id])
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  feedback        FeedbackRecord[]
+  approvalHistory ApprovalHistory[]
+  attachments     Attachment[]
+
+  @@index([brandId])
+  @@index([campaignId])
+  @@map("promo_scenarios")
+}
+
+model PromoTemplate {
+  id        String   @id
+  name      String
+  promoType String?  @map("promo_type")
+  config    Json
+  isBuiltIn Boolean  @map("is_built_in")
+  createdBy String?  @map("created_by")
+  createdAt DateTime @map("created_at")
+  updatedAt DateTime @map("updated_at")
+
+  @@map("promo_templates")
+}
+
+model FeedbackRecord {
+  id            String   @id
+  promoRef      String   @map("promo_ref")
+  message       String
+  createdByUser String   @map("created_by_user")
+  createdDate   DateTime @map("created_date")
+  readBy        Json     @default("[]") @map("read_by")
+
+  promo PromoScenario @relation(fields: [promoRef], references: [id])
+
+  @@index([promoRef])
+  @@map("feedback_records")
+}
+
+model ApprovalHistory {
+  id        String   @id
+  promoRef  String   @map("promo_ref")
+  status    String
+  changedBy String?  @map("changed_by")
+  changedAt DateTime @map("changed_at")
+
+  promo PromoScenario @relation(fields: [promoRef], references: [id])
+
+  @@index([promoRef])
+  @@map("approval_history")
+}
+
+model Attachment {
+  id             String   @id
+  promoRef       String   @map("promo_ref")
+  attachmentName String   @map("attachment_name")
+  fileUrl        String   @map("file_url")
+  uploadedBy     String   @map("uploaded_by")
+  uploadDate     DateTime @map("upload_date")
+
+  promo PromoScenario @relation(fields: [promoRef], references: [id])
+
+  @@index([promoRef])
+  @@map("attachments")
+}
