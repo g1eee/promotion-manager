@@ -7,6 +7,7 @@ import {
   EmptyState,
   Field,
   Input,
+  PageHeader,
   Select,
   SkeletonTable,
   Stack,
@@ -300,16 +301,11 @@ export function PromoHistoryView() {
 
   return (
     <Stack gap="lg">
-      <Stack direction="horizontal" justify="space-between" align="center" wrap>
-        <div>
-          <h1 className="pms-page__title">Promo History</h1>
-          <p className="pms-muted">
-            Riwayat seluruh promo lintas campaign untuk Brand{" "}
-            {activeBrand?.label ?? activeBrandId}.
-          </p>
-        </div>
-        <StatusBadge status={`${items.length} Promo`} tone="info" />
-      </Stack>
+      <PageHeader
+        title="Promo History"
+        subtitle={`Riwayat seluruh promo lintas campaign untuk Brand ${activeBrand?.label ?? activeBrandId}.`}
+        rightContent={<StatusBadge status={`${items.length} Promo`} tone="info" />}
+      />
 
       <Card title="Pencarian & Filter">
         <Stack gap="md">

@@ -1,6 +1,7 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import { useMemo, type HTMLAttributes, type ReactNode } from "react";
 import { cx } from "../utils/cx";
 import { Button } from "./Button";
+import { Megaphone, Package, Search, Tag } from "lucide-react";
 
 /**
  * Preset empty-state scenarios shared across modules. Each variant carries a
@@ -107,6 +108,17 @@ export function EmptyState({
 }: EmptyStateProps) {
   const preset = variant ? emptyStatePresets[variant] : undefined;
 
+  const variantIcon = useMemo(() => {
+    if (!variant) return null;
+    const icons: Record<EmptyStateVariant, ReactNode> = {
+      "no-campaigns": <Megaphone size={32} />,
+      "no-promos": <Tag size={32} />,
+      "no-products": <Package size={32} />,
+      "no-search-results": <Search size={32} />,
+    };
+    return icons[variant] ?? null;
+  }, [variant]);
+
   const resolvedTitle = title ?? preset?.title ?? "Tidak ada data";
   const resolvedDescription =
     description === undefined ? preset?.description : description;
@@ -129,9 +141,9 @@ export function EmptyState({
       role="status"
       {...rest}
     >
-      {icon != null && (
+      {(icon ?? variantIcon) != null && (
         <div className="pms-empty__icon" aria-hidden="true">
-          {icon}
+          {icon ?? variantIcon}
         </div>
       )}
       <div className="pms-empty__title">{resolvedTitle}</div>

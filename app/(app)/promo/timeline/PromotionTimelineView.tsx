@@ -6,6 +6,7 @@ import {
   Card,
   EmptyState,
   Field,
+  PageHeader,
   Select,
   SkeletonCard,
   Stack,
@@ -137,16 +138,11 @@ export function PromotionTimelineView() {
 
   return (
     <Stack gap="lg">
-      <Stack direction="horizontal" justify="space-between" align="center" wrap>
-        <div>
-          <h1 className="pms-page__title">Promotion Timeline</h1>
-          <p className="pms-muted">
-            Jadwal promo yang akan datang untuk Brand{" "}
-            {summary?.brandName ?? activeBrand?.label ?? activeBrandId}.
-          </p>
-        </div>
-        <StatusBadge status={`${total} Promo`} tone="info" />
-      </Stack>
+      <PageHeader
+        title="Promotion Timeline"
+        subtitle={`Jadwal promo yang akan datang untuk Brand ${summary?.brandName ?? activeBrand?.label ?? activeBrandId}.`}
+        rightContent={<StatusBadge status={`${total} Promo`} tone="info" />}
+      />
 
       <Card title="Rentang Waktu">
         <Stack direction="horizontal" gap="md" wrap>

@@ -2,49 +2,64 @@
  * Design tokens for the Promotion Management System (PMS) design system.
  *
  * These tokens are the single source of truth for spacing, color, typography,
- * radius, shadow, and z-index values used across every module. They are mirrored
- * as CSS custom properties in `app/globals.css` (see `--pms-*` variables) so that
- * components can be styled via CSS classes while values stay consistent with this
- * TypeScript object for programmatic use.
+ * radius, shadow, and z-index values used across every module. They mirror the
+ * CSS custom properties in `app/globals.css` (see `--pms-*` variables) so that
+ * TypeScript code can reference values programmatically while CSS uses the
+ * custom properties directly.
  *
  * Design principles (see design.md "UX & Screen Design"):
- * - Desktop-first: compact spacing scale tuned for dense tables and multi-column layouts.
- * - Information dense but readable: restrained palette, clear status colors, legible type.
+ * - Dark Command Center palette (Linear/Vercel-inspired).
+ * - Desktop-first: compact spacing scale tuned for dense tables and
+ *   multi-column layouts.
+ * - Information dense but readable: restrained palette, clear status colors,
+ *   legible type.
+ *
+ * IMPORTANT: Keep this file in sync with `app/globals.css` :root variables.
+ * When updating one, update the other.
  */
 
 export const colors = {
-  // Brand / primary action
-  primary: "#1d4ed8",
-  primaryHover: "#1e40af",
-  primaryActive: "#1e3a8a",
-  primarySubtle: "#eff6ff",
+  // Brand / primary action — indigo
+  primary: "#6366f1",
+  primaryHover: "#818cf8",
+  primaryActive: "#4f46e5",
+  primarySubtle: "#1e213a",
+
+  // Secondary — blue
+  secondary: "#3b82f6",
+  secondaryHover: "#60a5fa",
+  secondarySubtle: "#15233f",
 
   // Neutrals (surfaces, borders, text)
-  bg: "#f8fafc",
-  surface: "#ffffff",
-  surfaceAlt: "#f1f5f9",
-  border: "#e2e8f0",
-  borderStrong: "#cbd5e1",
+  bg: "#0b0f14",
+  surface: "#111827",
+  surfaceAlt: "#161e2e",
+  border: "#1f2937",
+  borderStrong: "#2c3a4f",
 
-  textPrimary: "#0f172a",
-  textSecondary: "#475569",
-  textMuted: "#94a3b8",
-  textInverse: "#ffffff",
+  textPrimary: "#e5e7eb",
+  textSecondary: "#9ca3af",
+  textMuted: "#7d8594",
+  textInverse: "#0b0f14",
 
   // Semantic / status
-  success: "#15803d",
-  successSubtle: "#dcfce7",
-  warning: "#b45309",
-  warningSubtle: "#fef3c7",
-  danger: "#b91c1c",
-  dangerSubtle: "#fee2e2",
-  info: "#0369a1",
-  infoSubtle: "#e0f2fe",
-  neutral: "#475569",
-  neutralSubtle: "#f1f5f9",
+  success: "#22c55e",
+  successSubtle: "#0f2a1a",
+  warning: "#f59e0b",
+  warningSubtle: "#2c2410",
+  danger: "#ef4444",
+  dangerSubtle: "#2c1518",
+  info: "#3b82f6",
+  infoSubtle: "#15233f",
+  feedback: "#8b5cf6",
+  feedbackSubtle: "#211a3a",
+  execution: "#3b82f6",
+  executionSubtle: "#15233f",
+  neutral: "#9ca3af",
+  neutralSubtle: "#1b2433",
 
-  focusRing: "#3b82f6",
-  overlay: "rgba(15, 23, 42, 0.45)",
+  focusRing: "#6366f1",
+  overlay: "rgba(3, 6, 12, 0.72)",
 } as const;
 
 export const spacing = {
@@ -61,9 +76,11 @@ export const spacing = {
 
 export const typography = {
   fontFamily:
-    'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    'var(--pms-font-inter), system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fontFamilyDisplay:
+    'var(--pms-font-space-grotesk), var(--pms-font-inter), system-ui, sans-serif',
   fontFamilyMono:
-    'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+    'var(--pms-font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
 
   fontSize: {
     xs: "11px",
@@ -71,8 +88,8 @@ export const typography = {
     md: "13px",
     lg: "15px",
     xl: "18px",
-    xxl: "22px",
-    xxxl: "28px",
+    xxl: "24px",
+    xxxl: "30px",
   },
 
   fontWeight: {
@@ -91,16 +108,16 @@ export const typography = {
 
 export const radius = {
   none: "0",
-  sm: "4px",
-  md: "6px",
-  lg: "8px",
+  sm: "8px",
+  md: "10px",
+  lg: "12px",
   pill: "999px",
 } as const;
 
 export const shadow = {
-  sm: "0 1px 2px rgba(15, 23, 42, 0.08)",
-  md: "0 2px 8px rgba(15, 23, 42, 0.12)",
-  lg: "0 8px 24px rgba(15, 23, 42, 0.18)",
+  sm: "0 1px 2px rgba(0, 0, 0, 0.4)",
+  md: "0 2px 8px rgba(0, 0, 0, 0.45)",
+  lg: "0 12px 32px rgba(0, 0, 0, 0.55)",
 } as const;
 
 export const zIndex = {

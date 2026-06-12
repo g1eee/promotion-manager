@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Card,
   EmptyState,
+  PageHeader,
   SkeletonTable,
   Stack,
   StatusBadge,
@@ -100,16 +101,11 @@ export function ApprovalHistoryView() {
 
   return (
     <Stack gap="lg">
-      <Stack direction="horizontal" justify="space-between" align="center" wrap>
-        <div>
-          <h1 className="pms-page__title">Approval History</h1>
-          <p className="pms-muted">
-            Riwayat perubahan status approval promo untuk Brand{" "}
-            {activeBrand?.label ?? activeBrandId}.
-          </p>
-        </div>
-        <StatusBadge status={`${items.length} Catatan`} tone="info" />
-      </Stack>
+      <PageHeader
+        title="Approval History"
+        subtitle={`Riwayat perubahan status approval promo untuk Brand ${activeBrand?.label ?? activeBrandId}.`}
+        rightContent={<StatusBadge status={`${items.length} Catatan`} tone="info" />}
+      />
 
       <Card padding="none">
         {loading ? (

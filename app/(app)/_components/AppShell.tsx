@@ -48,17 +48,19 @@ export function AppShell({ topBar, sidebar, children }: AppShellProps) {
 
   return (
     <div className={cx("pms-shell", collapsed && "pms-shell--collapsed")}>
-      <button
-        type="button"
-        className="pms-shell__sidebar-toggle"
-        aria-label={collapsed ? "Lebarkan sidebar" : "Ciutkan sidebar"}
-        aria-pressed={collapsed}
-        onClick={toggle}
-      >
-        <span aria-hidden="true">{collapsed ? "»" : "«"}</span>
-      </button>
       {topBar}
-      {sidebar}
+      <div className="pms-shell__sidebar-wrap">
+        <button
+          type="button"
+          className="pms-shell__sidebar-toggle"
+          aria-label={collapsed ? "Lebarkan sidebar" : "Ciutkan sidebar"}
+          aria-pressed={collapsed}
+          onClick={toggle}
+        >
+          <span aria-hidden="true">{collapsed ? "»" : "«"}</span>
+        </button>
+        {sidebar}
+      </div>
       <main className="pms-shell__content" id="main-content">
         {children}
       </main>

@@ -7,6 +7,7 @@ import {
   EmptyState,
   Field,
   Input,
+  PageHeader,
   Select,
   SkeletonTable,
   Stack,
@@ -157,16 +158,11 @@ export function CampaignHistoryView() {
 
   return (
     <Stack gap="lg">
-      <Stack direction="horizontal" justify="space-between" align="center" wrap>
-        <div>
-          <h1 className="pms-page__title">Campaign History</h1>
-          <p className="pms-muted">
-            Riwayat seluruh campaign untuk Brand{" "}
-            {activeBrand?.label ?? activeBrandId}.
-          </p>
-        </div>
-        <StatusBadge status={`${items.length} Campaign`} tone="info" />
-      </Stack>
+      <PageHeader
+        title="Campaign History"
+        subtitle={`Riwayat seluruh campaign untuk Brand ${activeBrand?.label ?? activeBrandId}.`}
+        rightContent={<StatusBadge status={`${items.length} Campaign`} tone="info" />}
+      />
 
       <Card title="Filter">
         <Stack direction="horizontal" gap="md" align="end" wrap>
