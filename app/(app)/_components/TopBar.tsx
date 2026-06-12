@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LineChart } from "lucide-react";
 import { Role } from "@domain/enums";
 
 /**
@@ -78,10 +79,10 @@ export function TopBar({
       <div className="pms-shell__topbar-left">
         <div className="pms-shell__topbar-brand">
           <span className="pms-shell__topbar-brand-mark" aria-hidden="true">
-            PMS
+            <LineChart size={16} />
           </span>
           <span className="pms-shell__topbar-brand-name">
-            Promotion Management System
+            Campaign Tracker
           </span>
         </div>
 

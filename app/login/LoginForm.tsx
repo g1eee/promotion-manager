@@ -55,8 +55,8 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
   return (
     <Card padding="lg" className="pms-login__card">
       <div className="pms-login__header">
-        <span className="pms-login__brand-mark">PMS</span>
-        <h1 className="pms-login__title">Masuk ke Promotion Manager</h1>
+        <span className="pms-login__brand-mark">CT</span>
+        <h1 className="pms-login__title">Masuk ke Campaign Tracker</h1>
         <p className="pms-login__subtitle">
           Gunakan akun Anda untuk melanjutkan.
         </p>

@@ -7,6 +7,7 @@ import {
   EmptyState,
   SkeletonCard,
   Stack,
+  StatCard,
   StatusBadge,
 } from "@ui/components";
 import type {
@@ -17,10 +18,10 @@ import type {
   RecentPromoActivity,
 } from "@services/index";
 import {
-  ArrowRight,
   CalendarClock,
   CircleCheck,
   CircleDot,
+  Megaphone,
   MessageSquare,
   Rocket,
   Tag as Tag2,
@@ -135,76 +136,55 @@ function HeroSummary({
   );
 }
 
-interface ActionBlock {
-  readonly key: string;
-  readonly label: string;
-  readonly count: number;
-  readonly tone: "review" | "execution" | "rejected" | "feedback";
-  readonly icon: typeof CircleDot;
-}
-
-function ActionCenter({
+function StatRow({
   summary,
 }: {
   readonly summary: DashboardSummary;
 }) {
-  const blocks: ActionBlock[] = [
-    {
-      key: "review",
-      label: "Pending Review",
-      count: summary.workQueue.pendingReviews,
-      tone: "review",
-      icon: CircleDot,
-    },
-    {
-      key: "execution",
-      label: "Waiting Execution",
-      count: summary.workQueue.waitingForExecution,
-      tone: "execution",
-      icon: Rocket,
-    },
-    {
-      key: "rejected",
-      label: "Rejected Promo",
-      count: summary.workQueue.rejectedPromos,
-      tone: "rejected",
-      icon: TriangleAlert,
-    },
-    {
-      key: "feedback",
-      label: "Unread Feedback",
-      count: summary.workQueue.unreadFeedback,
-      tone: "feedback",
-      icon: MessageSquare,
-    },
-  ];
+  const wq = summary.workQueue;
+  const activeCount = summary.activeCampaigns.length;
 
   return (
-    <section className="pms-cc-kpi" aria-label="Needs Attention">
-      <span className="pms-cc-kpi__heading">Needs Attention</span>
-      <div className="pms-cc-kpi__items">
-        {blocks.map((block) => {
-          const Icon = block.icon;
-          return (
-            <div
-              key={block.key}
-              className={`pms-cc-kpi__item pms-cc-kpi__item--${block.tone}`}
-            >
-              <span className="pms-cc-kpi__icon">
-                <Icon size={16} aria-hidden="true" />
-              </span>
-              <strong className="pms-cc-kpi__count">
-                {number(block.count)}
-              </strong>
-              <span className="pms-cc-kpi__label">{block.label}</span>
-            </div>
-          );
-        })}
-      </div>
-      <Link href="/promo/execution" className="pms-cc-kpi__link">
-        Buka Antrian <ArrowRight size={14} aria-hidden="true" />
-      </Link>
-    </section>
+    <div className="pms-stat-grid" aria-label="Needs Attention">
+      <StatCard
+        label="Pending Review"
+        value={number(wq.pendingReviews)}
+        caption="Menunggu review"
+        tone={wq.pendingReviews > 0 ? "warning" : "default"}
+        accent={wq.pendingReviews > 0}
+        icon={<CircleDot size={18} />}
+      />
+      <StatCard
+        label="Waiting Execution"
+        value={number(wq.waitingForExecution)}
+        caption="Siap setup marketplace"
+        tone="info"
+        icon={<Rocket size={18} />}
+      />
+      <StatCard
+        label="Rejected Promo"
+        value={number(wq.rejectedPromos)}
+        caption="Perlu revisi"
+        tone={wq.rejectedPromos > 0 ? "danger" : "default"}
+        accent={wq.rejectedPromos > 0}
+        icon={<TriangleAlert size={18} />}
+      />
+      <StatCard
+        label="Unread Feedback"
+        value={number(wq.unreadFeedback)}
+        caption="Belum dibaca"
+        tone="info"
+        icon={<MessageSquare size={18} />}
+      />
+      <StatCard
+        label="Active Campaigns"
+        value={number(activeCount)}
+        caption="Sedang berjalan"
+        tone="success"
+        accent
+        icon={<Megaphone size={18} />}
+      />
+    </div>
   );
 }
 
@@ -375,7 +355,7 @@ export function DashboardView() {
     <Stack gap="lg" className="pms-cc">
       <HeroSummary summary={summary} brandLabel={brandLabel} />
 
-      <ActionCenter summary={summary} />
+      <StatRow summary={summary} />
 
       <div className="pms-cc__layout">
         <div className="pms-cc__main">

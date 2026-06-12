@@ -19,6 +19,9 @@ export type { StatusBadgeProps } from "./StatusBadge";
 export { Card } from "./Card";
 export type { CardProps, CardPadding } from "./Card";
 
+export { StatCard } from "./StatCard";
+export type { StatCardProps, StatCardTone } from "./StatCard";
+
 export { EmptyState, emptyStatePresets } from "./EmptyState";
 export type { EmptyStateProps, EmptyStateVariant } from "./EmptyState";
 

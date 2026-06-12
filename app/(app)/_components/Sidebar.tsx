@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LineChart } from "lucide-react";
 import { Role } from "@domain/enums";
 import { cx } from "@ui/utils/cx";
 import { navGroupsForRole } from "./nav-config";
@@ -45,8 +46,13 @@ export function Sidebar({ role = Role.SPV_Marketing }: SidebarProps) {
   return (
     <nav className="pms-shell__sidebar" aria-label="Main navigation">
       <div className="pms-shell__brand">
-        <span className="pms-shell__brand-mark">PMS</span>
-        <span className="pms-shell__brand-name">Promotion Manager</span>
+        <span className="pms-shell__brand-mark" aria-hidden="true">
+          <LineChart size={16} />
+        </span>
+        <span className="pms-shell__brand-text">
+          <span className="pms-shell__brand-name">Campaign Tracker</span>
+          <span className="pms-shell__brand-sub">by Gie</span>
+        </span>
       </div>
 
       {groups.map((group, index) => (

@@ -25,7 +25,7 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Promotion Management System",
+  title: "Campaign Tracker by Gie",
   description: "Internal multi-brand marketplace promo management",
 };
 
