@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import {
+  Button,
   Card,
   EmptyState,
+  Field,
+  Input,
   PageHeader,
   SkeletonTable,
   Stack,
@@ -44,11 +47,37 @@ function formatDateTime(value: Date | string): string {
   }).format(new Date(value));
 }
 
+function threeMonthsAgo(): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 3);
+  return d.toISOString().slice(0, 10);
+}
+
+interface FilterState {
+  dateFrom: string;
+  dateTo: string;
+}
+
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function hasActiveFilters(filters: FilterState): boolean {
+  return filters.dateTo !== "";
+}
+
 export function ApprovalHistoryView() {
   const { activeBrandId, activeBrand } = useActiveBrand();
+  const dateFromField = useId();
+  const dateToField = useId();
+
   const [items, setItems] = useState<ApprovalHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FilterState>({
+    dateFrom: threeMonthsAgo(),
+    dateTo: "",
+  });
 
   const loadHistory = useCallback(async () => {
     setLoading(true);
@@ -56,6 +85,8 @@ export function ApprovalHistoryView() {
     try {
       const params = new URLSearchParams();
       if (activeBrandId) params.set("brandId", activeBrandId);
+      if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
+      if (filters.dateTo) params.set("dateTo", filters.dateTo);
       const loaded = await readJson<ApprovalHistoryItem[]>(
         await fetch(`/api/promos/approval-history?${params.toString()}`, {
           cache: "no-store",
@@ -71,11 +102,21 @@ export function ApprovalHistoryView() {
     } finally {
       setLoading(false);
     }
-  }, [activeBrandId]);
+  }, [activeBrandId, filters]);
 
   useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
+
+  const updateFilter = useCallback((key: keyof FilterState, value: string) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFilters({ dateFrom: threeMonthsAgo(), dateTo: "" });
+  }, []);
+
+  const filtersActive = hasActiveFilters(filters);
 
   const columns = useMemo<TableColumn<ApprovalHistoryItem>[]>(
     () => [
@@ -106,6 +147,41 @@ export function ApprovalHistoryView() {
         subtitle={`Riwayat perubahan status approval promo untuk Brand ${activeBrand?.label ?? activeBrandId}.`}
         rightContent={<StatusBadge status={`${items.length} Catatan`} tone="info" />}
       />
+
+      <Card title="Filter Tanggal">
+        <Stack direction="horizontal" gap="md" align="end" wrap>
+          <Field htmlFor={dateFromField} label="Dari">
+            <Input
+              id={dateFromField}
+              type="date"
+              value={filters.dateFrom}
+              min={threeMonthsAgo()}
+              max={today()}
+              onChange={(event) => updateFilter("dateFrom", event.target.value)}
+            />
+          </Field>
+          <Field htmlFor={dateToField} label="Sampai">
+            <Input
+              id={dateToField}
+              type="date"
+              value={filters.dateTo}
+              min={threeMonthsAgo()}
+              max={today()}
+              onChange={(event) => updateFilter("dateTo", event.target.value)}
+            />
+          </Field>
+          <Button
+            variant="secondary"
+            disabled={!filtersActive}
+            onClick={resetFilters}
+          >
+            Reset Filter
+          </Button>
+        </Stack>
+        <p className="pms-muted" style={{ marginTop: "var(--pms-space-sm)", fontSize: "var(--pms-font-size-xs)" }}>
+          Riwayat hanya tersedia untuk 3 bulan terakhir.
+        </p>
+      </Card>
 
       <Card padding="none">
         {loading ? (

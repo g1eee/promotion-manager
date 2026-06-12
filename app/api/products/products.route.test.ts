@@ -197,7 +197,7 @@ describe("Product API - import/template/archive/delete (Req 3.10, 3.11, 3.12, 3.
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/csv");
     expect(await response.text()).toContain(
-      "Product ID,Nama Produk,Kategori,HPP,Harga Jual,Status,Brand",
+      "Product ID,Nama Produk,Kategori,HPP,Harga Jual,Status",
     );
   });
 
@@ -207,9 +207,9 @@ describe("Product API - import/template/archive/delete (Req 3.10, 3.11, 3.12, 3.
     asSpv();
 
     const content = [
-      "Product ID,Nama Produk,Kategori,HPP,Harga Jual,Status,Brand",
-      `${productId},Serum Import,Serum,10000,25000,Active,Kalova`,
-      ",Missing ID,Serum,10000,25000,Active,Kalova",
+      "Product ID,Nama Produk,Kategori,HPP,Harga Jual,Status",
+      `${productId},Serum Import,Serum,10000,25000,Active`,
+      ",Missing ID,Serum,10000,25000,Active",
     ].join("\n");
 
     const response = await importProducts(importReq({ brandId: brand.id, content }));

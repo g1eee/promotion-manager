@@ -96,7 +96,7 @@ function resolveActiveBrandId(
       surrogateId.endsWith(`-${normalized}`)
     );
   });
-  return match?.id ?? brands[0]?.id ?? "";
+  return match?.id ?? "";
 }
 
 function toDateInput(value: Date | string): string {
@@ -138,6 +138,7 @@ export function CampaignsView() {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [filterBrandId, setFilterBrandId] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>("create");
@@ -165,16 +166,26 @@ export function CampaignsView() {
     [brands],
   );
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (overrideBrandId?: string) => {
     setLoading(true);
     setLoadError(null);
     try {
       const loadedBrands = await readJson<Brand[]>(
         await fetch("/api/brands", { cache: "no-store" }),
       );
-      const brandId = resolveActiveBrandId(loadedBrands, activeBrandId);
+      const resolvedDefault = resolveActiveBrandId(loadedBrands, activeBrandId);
+      let effectiveBrandId: string;
+      if (overrideBrandId !== undefined) {
+        effectiveBrandId = overrideBrandId;
+        setFilterBrandId(overrideBrandId);
+      } else if (filterBrandId === null) {
+        effectiveBrandId = resolvedDefault;
+        setFilterBrandId(resolvedDefault);
+      } else {
+        effectiveBrandId = filterBrandId;
+      }
       const params = new URLSearchParams();
-      if (brandId) params.set("brandId", brandId);
+      if (effectiveBrandId) params.set("brandId", effectiveBrandId);
       const loadedCampaigns = await readJson<CampaignRow[]>(
         await fetch(`/api/campaigns?${params.toString()}`, {
           cache: "no-store",
@@ -189,7 +200,7 @@ export function CampaignsView() {
     } finally {
       setLoading(false);
     }
-  }, [activeBrandId]);
+  }, [activeBrandId, filterBrandId]);
 
   useEffect(() => {
     void loadData();
@@ -245,7 +256,7 @@ export function CampaignsView() {
           : `Campaign "${saved.nama}" berhasil dibuat.`,
       );
       setFormOpen(false);
-      await loadData();
+      await loadData(saved.brandId);
     } catch (error) {
       if (error instanceof ApiError && error.status === 422 && error.body.fields) {
         setFieldErrors(error.body.fields);
@@ -291,13 +302,31 @@ export function CampaignsView() {
   const endField = `${fieldPrefix}-selesai`;
   const statusField = `${fieldPrefix}-status`;
 
+  const brandFilterOptions = useMemo(
+    () => [
+      { label: "Semua Brand", value: "" },
+      ...brands.map((brand) => ({ label: brand.displayName, value: brand.id })),
+    ],
+    [brands],
+  );
+
   return (
     <Stack gap="lg">
       <Stack direction="horizontal" justify="space-between" align="center" wrap>
         <h1 className="pms-page__title">Campaigns</h1>
-        <Button onClick={openCreate} disabled={!activeApiBrandId}>
-          Add Campaign
-        </Button>
+        <Stack direction="horizontal" gap="sm" align="center" wrap>
+          <Select
+            aria-label="Filter brand"
+            value={filterBrandId ?? ""}
+            options={brandFilterOptions}
+            onChange={(event) => {
+              setFilterBrandId(event.target.value);
+            }}
+          />
+          <Button onClick={openCreate} disabled={!activeApiBrandId}>
+            Add Campaign
+          </Button>
+        </Stack>
       </Stack>
 
       <Card padding="none">

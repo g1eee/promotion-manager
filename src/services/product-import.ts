@@ -35,8 +35,7 @@ export type ProductImportColumn =
   | "kategori"
   | "hpp"
   | "hargaJual"
-  | "status"
-  | "brand";
+  | "status";
 
 /**
  * A single parsed data row from an import file, ready for the partition step.
@@ -76,7 +75,6 @@ const HEADER_ALIASES: Readonly<Record<string, ProductImportColumn>> = {
   hargajual: "hargaJual",
   "selling price": "hargaJual",
   status: "status",
-  brand: "brand",
 };
 
 /** Normalize a header label for alias lookup: trim, lowercase, collapse spaces. */

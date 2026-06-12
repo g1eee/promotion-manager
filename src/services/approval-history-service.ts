@@ -35,6 +35,12 @@ export interface ApprovalHistoryServiceDeps {
   readonly brands: BrandRepository;
 }
 
+export interface ApprovalHistoryFilter {
+  readonly brand?: string;
+  readonly dateFrom?: Date;
+  readonly dateTo?: Date;
+}
+
 /** A single Approval History row (Req 17.1). */
 export interface ApprovalHistoryItem {
   readonly id: string;
@@ -77,7 +83,7 @@ export class ApprovalHistoryService {
    * (Req 17.1). When a Brand context is supplied, only the approval history of
    * that Brand's promos is returned.
    */
-  async list(filter: { brand?: string } = {}): Promise<ApprovalHistoryItem[]> {
+  async list(filter: ApprovalHistoryFilter = {}): Promise<ApprovalHistoryItem[]> {
     const brands = await this.deps.brands.list();
     const resolvedBrandId = this.resolveBrandFilter(brands, filter.brand);
     // A Brand filter that matches no Brand yields no rows.
@@ -104,11 +110,22 @@ export class ApprovalHistoryService {
       })),
     );
 
-    const rows = histories.flatMap(({ promo, entries }) =>
-      entries.map((entry) =>
-        this.toItem(entry, promo, brandById, campaignById),
-      ),
-    );
+    const dateFrom = filter.dateFrom ? new Date(filter.dateFrom.getTime()) : null;
+    const dateTo = filter.dateTo ? new Date(filter.dateTo.getTime()) : null;
+
+    const rows = histories
+      .flatMap(({ promo, entries }) =>
+        entries
+          .filter((entry) => {
+            const t = entry.changedAt.getTime();
+            if (dateFrom && t < dateFrom.getTime()) return false;
+            if (dateTo && t > dateTo.getTime()) return false;
+            return true;
+          })
+          .map((entry) =>
+            this.toItem(entry, promo, brandById, campaignById),
+          ),
+      );
 
     return rows.sort((a, b) => b.changedAt.getTime() - a.changedAt.getTime());
   }
