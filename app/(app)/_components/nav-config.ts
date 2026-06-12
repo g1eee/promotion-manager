@@ -35,11 +35,10 @@ import {
   Rocket,
   CalendarClock,
   Package,
-  Coins,
-  LayoutTemplate,
   History,
   ClipboardCheck,
   Building2,
+  User,
 } from "lucide-react";
 
 export interface NavItem {
@@ -84,20 +83,12 @@ export const navGroups: NavGroup[] = [
     label: "Data",
     items: [
       { label: "Products", href: "/master/products", icon: Package, roles: SPV_ONLY },
-      {
-        label: "Costs",
-        href: "/master/cost-configuration",
-        icon: Coins,
-        roles: SPV_ONLY,
-      },
-      { label: "Templates", href: "/master/templates", icon: LayoutTemplate, roles: SPV_ONLY },
     ],
   },
   {
     label: "Reports",
     items: [
-      { label: "Campaign History", href: "/reports/campaign-history", icon: History },
-      { label: "Promo History", href: "/reports/promo-history", icon: History },
+      { label: "History", href: "/reports/history", icon: History },
       { label: "Approval History", href: "/reports/approval-history", icon: ClipboardCheck },
     ],
   },
@@ -108,6 +99,12 @@ export const navGroups: NavGroup[] = [
         label: "Brand Management",
         href: "/settings/brand-management",
         icon: Building2,
+        roles: SPV_ONLY,
+      },
+      {
+        label: "Account Settings",
+        href: "/settings/account",
+        icon: User,
         roles: SPV_ONLY,
       },
     ],

@@ -44,9 +44,8 @@ const SPV_ONLY_LABELS = [
   "Campaigns",
   "Promos",
   "Products",
-  "Costs",
-  "Templates",
   "Brand Management",
+  "Account Settings",
 ];
 
 /** Labels visible to every role. */
@@ -54,8 +53,7 @@ const SHARED_LABELS = [
   "Home",
   "Timeline",
   "Execution",
-  "Campaign History",
-  "Promo History",
+  "History",
   "Approval History",
 ];
 

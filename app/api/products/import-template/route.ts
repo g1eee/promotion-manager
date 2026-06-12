@@ -15,7 +15,6 @@ const TEMPLATE_HEADERS = [
   "HPP",
   "Harga Jual",
   "Status",
-  "Brand",
 ];
 
 export async function GET(): Promise<Response> {

@@ -383,10 +383,10 @@ export function DashboardView() {
         </div>
 
         <aside className="pms-cc__rail">
+          <ActiveCampaigns campaigns={summary.activeCampaigns} />
           <Card title="Kalender Campaign" subtitle="Jadwal bulanan" padding="none">
             <CampaignCalendar campaigns={summary.calendarCampaigns} />
           </Card>
-          <ActiveCampaigns campaigns={summary.activeCampaigns} />
         </aside>
       </div>
     </Stack>

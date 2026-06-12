@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { cx } from "../utils/cx";
 
@@ -50,6 +50,15 @@ export interface TableProps<Row> {
    */
   pageSize?: number;
   className?: string;
+  /**
+   * Expandable row support. When provided, each row shows an expand toggle.
+   * `expandedKey` is the current expanded row key (null when collapsed).
+   */
+  expandable?: {
+    expandedKey: string | number | null;
+    onToggle: (key: string | number) => void;
+    renderExpanded: (row: Row) => ReactNode;
+  };
 }
 
 function compareValues(
@@ -82,6 +91,7 @@ export function Table<Row>({
   caption,
   pageSize,
   className,
+  expandable,
 }: TableProps<Row>) {
   const [sort, setSort] = useState<{ key: string; dir: SortDirection } | null>(
     null,
@@ -175,26 +185,52 @@ export function Table<Row>({
         <tbody>
           {visibleData.length === 0 ? (
             <tr>
-              <td className="pms-table__empty" colSpan={columns.length}>
+              <td className="pms-table__empty" colSpan={columns.length + (expandable ? 1 : 0)}>
                 {emptyContent}
               </td>
             </tr>
           ) : (
-            visibleData.map((row, rowIndex) => (
-              <tr key={rowKey(row, rowIndex)}>
-                {columns.map((column) => (
-                  <td
-                    key={column.key}
-                    className={cx(column.numeric && "pms-table__cell--numeric")}
-                    style={{
-                      textAlign: column.numeric ? undefined : column.align,
-                    }}
-                  >
-                    {column.render(row, rowIndex)}
-                  </td>
-                ))}
-              </tr>
-            ))
+            visibleData.map((row, rowIndex) => {
+              const key = rowKey(row, rowIndex);
+              const isExpanded = expandable?.expandedKey === key;
+              return (
+                <Fragment key={key}>
+                  <tr>
+                    {expandable && (
+                      <td className="pms-table__cell--expand">
+                        <button
+                          type="button"
+                          className="pms-table__expand-btn"
+                          onClick={() => expandable.onToggle(key)}
+                          aria-expanded={isExpanded}
+                          aria-label={isExpanded ? "Sembunyikan detail" : "Tampilkan detail"}
+                        >
+                          {isExpanded ? "▾" : "▸"}
+                        </button>
+                      </td>
+                    )}
+                    {columns.map((column) => (
+                      <td
+                        key={column.key}
+                        className={cx(column.numeric && "pms-table__cell--numeric")}
+                        style={{
+                          textAlign: column.numeric ? undefined : column.align,
+                        }}
+                      >
+                        {column.render(row, rowIndex)}
+                      </td>
+                    ))}
+                  </tr>
+                  {isExpanded && expandable && (
+                    <tr className="pms-table__expanded-row">
+                      <td colSpan={columns.length + 1}>
+                        {expandable.renderExpanded(row)}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })
           )}
         </tbody>
       </table>

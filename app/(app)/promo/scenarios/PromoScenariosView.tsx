@@ -172,11 +172,6 @@ function toDateInput(value: Date | string): string {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-function formatDate(value: Date | string): string {
-  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
-}
 
 function formFromPromo(promo: PromoScenario): PromoForm {
   return {
@@ -314,18 +309,6 @@ export function PromoScenariosView({
         : activeApiBrandId,
     [activeApiBrandId, brands, initialBrandId],
   );
-
-  const brandNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const brand of brands) map.set(brand.id, brand.displayName);
-    return map;
-  }, [brands]);
-
-  const campaignNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const campaign of campaigns) map.set(campaign.id, campaign.nama);
-    return map;
-  }, [campaigns]);
 
   const brandOptions = useMemo(
     () => brands.map((brand) => ({ label: brand.displayName, value: brand.id })),
@@ -944,47 +927,46 @@ export function PromoScenariosView({
     [productSubmitting, selectedProductIds, toggleCandidate],
   );
 
+  const [filterBrandId, setFilterBrandId] = useState("");
+  const [filterCampaignId, setFilterCampaignId] = useState("");
+
+  const filteredPromos = useMemo(() => {
+    let result = promos;
+    if (filterBrandId) {
+      result = result.filter((p) => p.brandId === filterBrandId);
+    }
+    if (filterCampaignId) {
+      result = result.filter((p) => p.campaignId === filterCampaignId);
+    }
+    return result;
+  }, [promos, filterBrandId, filterCampaignId]);
+
+  const filterBrandOptions = useMemo(
+    () => [{ label: "Semua Brand", value: "" }, ...brandOptions],
+    [brandOptions],
+  );
+
+  const filterCampaignOptions = useMemo(() => {
+    const filtered = filterBrandId
+      ? campaigns.filter((c) => c.brandId === filterBrandId)
+      : campaigns;
+    return [
+      { label: "Semua Campaign", value: "" },
+      ...filtered.map((c) => ({ label: c.nama, value: c.id })),
+    ];
+  }, [campaigns, filterBrandId]);
+
   const columns = useMemo<TableColumn<PromoScenario>[]>(
     () => [
       {
-        key: "brand",
-        header: "Brand",
-        render: (promo) => brandNameById.get(promo.brandId) ?? promo.brandId,
-      },
-      {
-        key: "campaign",
-        header: "Campaign",
-        render: (promo) => campaignNameById.get(promo.campaignId) ?? promo.campaignId,
-      },
-      {
-        key: "namaPromo",
-        header: "Promo",
-        render: (promo) => promo.namaPromo,
-      },
-      {
-        key: "promoType",
-        header: "Promo Type",
-        render: (promo) => promo.promoType,
-      },
-      {
-        key: "date",
-        header: "Tanggal",
-        render: (promo) =>
-          `${formatDate(promo.tanggalMulai)} - ${formatDate(
-            promo.tanggalSelesai,
-          )}`,
-      },
-      {
-        key: "products",
-        header: "Produk",
-        numeric: true,
-        render: (promo) => promo.productRefs.length,
-      },
-      {
-        key: "rules",
-        header: "Rules",
-        numeric: true,
-        render: (promo) => promo.rules.length,
+        key: "promo",
+        header: "Nama Promo",
+        render: (promo) => (
+          <Stack gap="xs">
+            <strong>{promo.namaPromo}</strong>
+            <span className="pms-muted">{promo.promoType}</span>
+          </Stack>
+        ),
       },
       {
         key: "status",
@@ -1008,46 +990,14 @@ export function PromoScenariosView({
             >
               {cloneSubmitting === promo.id ? "Cloning..." : "Clone"}
             </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => void openProducts(promo)}
-            >
-              Products
-            </Button>
-            <Button size="sm" variant="secondary" onClick={() => openRules(promo)}>
-              Rules
-            </Button>
-            {approvalActionsFor(promo).map((action) => {
-              const submitKey = approvalSubmitKey(promo.id, action.status);
-              return (
-                <Button
-                  key={action.status}
-                  size="sm"
-                  variant={action.variant}
-                  disabled={approvalSubmitting !== null}
-                  onClick={() => void changeApprovalStatus(promo, action.status)}
-                >
-                  {approvalSubmitting === submitKey
-                    ? "Memproses..."
-                    : action.label}
-                </Button>
-              );
-            })}
           </Stack>
         ),
       },
     ],
     [
-      brandNameById,
-      approvalSubmitting,
-      campaignNameById,
-      changeApprovalStatus,
       clonePromo,
       cloneSubmitting,
       openEdit,
-      openProducts,
-      openRules,
     ],
   );
 
@@ -1072,15 +1022,37 @@ export function PromoScenariosView({
     <Stack gap="lg">
       <Stack direction="horizontal" justify="space-between" align="center" wrap>
         <h1 className="pms-page__title">Promo Scenarios</h1>
-        <Button onClick={openCreate} disabled={!activeApiBrandId}>
-          Add Promo
-        </Button>
+        <Stack direction="horizontal" gap="sm" align="center" wrap>
+          <Select
+            aria-label="Filter brand"
+            options={filterBrandOptions}
+            value={filterBrandId}
+            onChange={(event) => {
+              setFilterBrandId(event.target.value);
+              setFilterCampaignId("");
+            }}
+          />
+          <Select
+            aria-label="Filter campaign"
+            options={filterCampaignOptions}
+            value={filterCampaignId}
+            onChange={(event) => setFilterCampaignId(event.target.value)}
+          />
+          {(filterBrandId || filterCampaignId) && (
+            <Button variant="ghost" onClick={() => { setFilterBrandId(""); setFilterCampaignId(""); }}>
+              Reset
+            </Button>
+          )}
+          <Button onClick={openCreate} disabled={!activeApiBrandId}>
+            Add Promo
+          </Button>
+        </Stack>
       </Stack>
 
       <Card padding="none">
         {loading ? (
           <div style={{ padding: "var(--pms-space-md)" }}>
-            <SkeletonTable rows={5} columns={8} />
+            <SkeletonTable rows={5} columns={6} />
           </div>
         ) : loadError ? (
           <EmptyState
@@ -1089,7 +1061,7 @@ export function PromoScenariosView({
             actionLabel="Refresh"
             onAction={() => void loadData()}
           />
-        ) : promos.length === 0 ? (
+        ) : filteredPromos.length === 0 ? (
           <EmptyState
             variant="no-promos"
             actionLabel="Add Promo"
@@ -1098,7 +1070,7 @@ export function PromoScenariosView({
         ) : (
           <Table
             columns={columns}
-            data={promos}
+            data={filteredPromos}
             rowKey={(promo) => promo.id}
             caption="Daftar Promo Scenario"
           />
@@ -1308,9 +1280,47 @@ export function PromoScenariosView({
             </Field>
           </Grid>
 
-          {formMode === "edit" && editingId !== null ? (
-            <FeedbackThread promoId={editingId} />
-          ) : null}
+          {formMode === "edit" && editingId !== null ? (() => {
+            const editingPromo = promos.find((p) => p.id === editingId) ?? null;
+            const approvalActions = editingPromo ? approvalActionsFor(editingPromo) : [];
+            return (
+              <>
+                <Stack direction="horizontal" gap="xs" wrap>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={editingPromo === null}
+                    onClick={() => editingPromo && void openProducts(editingPromo)}
+                  >
+                    Produk ({editingPromo?.productRefs.length ?? 0})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={editingPromo === null}
+                    onClick={() => editingPromo && openRules(editingPromo)}
+                  >
+                    Rules ({editingPromo?.rules.length ?? 0})
+                  </Button>
+                  {approvalActions.map((action) => {
+                    const submitKey = approvalSubmitKey(editingId, action.status);
+                    return (
+                      <Button
+                        key={action.status}
+                        size="sm"
+                        variant={action.variant}
+                        disabled={approvalSubmitting !== null || editingPromo === null}
+                        onClick={() => editingPromo && void changeApprovalStatus(editingPromo, action.status)}
+                      >
+                        {approvalSubmitting === submitKey ? "Memproses..." : action.label}
+                      </Button>
+                    );
+                  })}
+                </Stack>
+                <FeedbackThread promoId={editingId} />
+              </>
+            );
+          })() : null}
         </Stack>
       </Modal>
 

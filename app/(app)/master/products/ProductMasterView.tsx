@@ -324,7 +324,7 @@ export function ProductMasterView() {
 
   const downloadTemplate = useCallback(async () => {
     try {
-      const response = await fetch("/api/products/import/template");
+      const response = await fetch("/api/products/import-template");
       if (!response.ok) {
         throw new ApiError(response.status, {});
       }
@@ -679,8 +679,16 @@ export function ProductMasterView() {
             <Input
               id={`${fieldPrefix}-import-file`}
               type="file"
-              accept=".csv,.tsv,text/csv,text/tab-separated-values"
-              onChange={(event) => void onImportFile(event.target.files?.[0])}
+              accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file?.name.endsWith(".xlsx")) {
+                  toast.error("Format Excel (.xlsx) belum didukung. Export ke CSV terlebih dahulu.");
+                  event.target.value = "";
+                  return;
+                }
+                void onImportFile(file);
+              }}
             />
           </Field>
           <Field label="Preview / Paste CSV" htmlFor={`${fieldPrefix}-import-content`}>

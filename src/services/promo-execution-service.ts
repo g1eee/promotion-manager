@@ -12,6 +12,7 @@ import type {
   Campaign,
   Product,
   PromoScenario,
+  Rule,
 } from "../domain";
 import type {
   ApprovalHistoryRepository,
@@ -43,6 +44,7 @@ export interface ApprovedPromoListItem {
   readonly approvedAt: Date;
   readonly executionStatus: ExecutionStatus;
   readonly products: ApprovedPromoProduct[];
+  readonly rules: Rule[];
 }
 
 export interface AdminExecutionBoardDeps {
@@ -187,6 +189,7 @@ export class AdminExecutionBoard {
       approvedAt: approvedEntry?.changedAt ?? promo.updatedAt,
       executionStatus: promo.executionStatus ?? ExecutionStatus.Approved,
       products: resolvedProducts,
+      rules: promo.rules,
     };
   }
 }

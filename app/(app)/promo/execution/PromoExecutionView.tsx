@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Button,
   Card,
   EmptyState,
+  Modal,
   Select,
   SkeletonTable,
   Stack,
@@ -12,8 +14,8 @@ import {
   useToast,
 } from "@ui/components";
 import type { TableColumn } from "@ui/components";
-import { ExecutionStatus } from "@domain/enums";
-import type { PromoScenario } from "@domain/types";
+import { BenefitType, ExecutionStatus } from "@domain/enums";
+import type { PromoScenario, Rule } from "@domain/types";
 import { useActiveBrand } from "../../_components/BrandContext";
 
 interface ApprovedPromoRow {
@@ -30,7 +32,10 @@ interface ApprovedPromoRow {
   readonly products: readonly {
     readonly productId: string;
     readonly namaProduk: string;
+    readonly hpp: number;
+    readonly hargaJual: number;
   }[];
+  readonly rules: readonly Rule[];
 }
 
 interface ApiErrorBody {
@@ -95,6 +100,73 @@ export function PromoExecutionView() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [expandedKey, setExpandedKey] = useState<string | number | null>(null);
+  const [detailRow, setDetailRow] = useState<ApprovedPromoRow | null>(null);
+
+  const formatBenefit = useCallback((rule: Rule): string => {
+    if (rule.benefitType === BenefitType.DiscountPercent) {
+      return `${rule.discountPercent ?? 0}% discount`;
+    }
+    return rule.gift ?? "Free gift";
+  }, []);
+
+  const renderExpanded = useCallback(
+    (row: ApprovedPromoRow) => (
+      <div className="pms-exec-detail">
+        <div className="pms-exec-detail__section">
+          <h4 className="pms-exec-detail__title">Produk ({row.products.length})</h4>
+          {row.products.length === 0 ? (
+            <p className="pms-muted">Belum ada produk.</p>
+          ) : (
+            <table className="pms-table pms-table--compact">
+              <thead>
+                <tr>
+                  <th>Product ID</th>
+                  <th>Nama Produk</th>
+                  <th>HPP</th>
+                  <th>Harga Jual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {row.products.map((product) => (
+                  <tr key={product.productId}>
+                    <td className="pms-mono">{product.productId}</td>
+                    <td>{product.namaProduk}</td>
+                    <td>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(product.hpp)}</td>
+                    <td>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(product.hargaJual)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        <div className="pms-exec-detail__section">
+          <h4 className="pms-exec-detail__title">Rules ({row.rules.length})</h4>
+          {row.rules.length === 0 ? (
+            <p className="pms-muted">Belum ada rules.</p>
+          ) : (
+            <table className="pms-table pms-table--compact">
+              <thead>
+                <tr>
+                  <th>Minimum Qty</th>
+                  <th>Benefit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {row.rules.map((rule) => (
+                  <tr key={rule.id}>
+                    <td>{rule.minQuantity}</td>
+                    <td>{formatBenefit(rule)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    ),
+    [formatBenefit],
+  );
 
   const loadRows = useCallback(async () => {
     setLoading(true);
@@ -210,6 +282,16 @@ export function PromoExecutionView() {
           />
         ),
       },
+      {
+        key: "detail",
+        header: "",
+        width: "100px",
+        render: (row) => (
+          <Button size="sm" variant="secondary" onClick={() => setDetailRow(row)}>
+            Detail
+          </Button>
+        ),
+      },
     ],
     [updateExecutionStatus, updatingId],
   );
@@ -249,9 +331,30 @@ export function PromoExecutionView() {
             data={rows}
             rowKey={(row) => row.id}
             caption="Approved promos execution board"
+            expandable={{
+              expandedKey,
+              onToggle: (key) => setExpandedKey((current) => (current === key ? null : key)),
+              renderExpanded,
+            }}
           />
         )}
       </Card>
+
+      {detailRow && (
+        <Modal
+          open={detailRow !== null}
+          onClose={() => setDetailRow(null)}
+          title={detailRow.namaPromo}
+          size="lg"
+          footer={
+            <Button variant="secondary" onClick={() => setDetailRow(null)}>
+              Tutup
+            </Button>
+          }
+        >
+          {renderExpanded(detailRow)}
+        </Modal>
+      )}
     </Stack>
   );
 }
