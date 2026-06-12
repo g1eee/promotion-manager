@@ -943,6 +943,7 @@ textarea.pms-control {
 .pms-shell--collapsed .pms-shell__sidebar-wrap .pms-shell__sidebar-toggle {
   right: calc(-1 * var(--pms-space-sm));
 }
+.pms-shell--collapsed .pms-shell__brand-text,
 .pms-shell--collapsed .pms-shell__brand-name,
 .pms-shell--collapsed .pms-nav-group__label {
   display: none;
@@ -1230,9 +1231,18 @@ textarea.pms-control {
   font-size: var(--pms-font-size-sm);
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
+.pms-shell__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: var(--pms-line-height-tight);
+}
 .pms-shell__brand-name {
   font-weight: var(--pms-font-weight-semibold);
   color: var(--pms-color-text-primary);
+}
+.pms-shell__brand-sub {
+  font-size: var(--pms-font-size-xs);
+  color: var(--pms-color-text-muted);
 }
 
 .pms-nav-group {
@@ -2228,6 +2238,85 @@ textarea.pms-control {
   white-space: nowrap;
 }
 
+/* ---------- Stat cards (KPI row) ---------- */
+
+.pms-stat-grid {
+  display: grid;
+  gap: var(--pms-space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.pms-stat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pms-space-xs);
+  padding: var(--pms-space-lg);
+  border: 1px solid var(--pms-color-border);
+  border-radius: var(--pms-radius-lg);
+  background-color: var(--pms-color-surface);
+}
+.pms-stat-card__label {
+  font-size: var(--pms-font-size-xs);
+  font-weight: var(--pms-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pms-color-text-muted);
+  padding-right: 40px;
+}
+.pms-stat-card__icon {
+  position: absolute;
+  top: var(--pms-space-lg);
+  right: var(--pms-space-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--pms-radius-md);
+  background-color: var(--pms-color-neutral);
+  color: var(--pms-color-text-inverse);
+}
+.pms-stat-card__value {
+  font-family: var(--pms-font-family-display);
+  font-size: var(--pms-font-size-xxxl);
+  font-weight: var(--pms-font-weight-bold);
+  line-height: var(--pms-line-height-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--pms-color-text-primary);
+}
+.pms-stat-card__caption {
+  font-size: var(--pms-font-size-xs);
+  color: var(--pms-color-text-secondary);
+}
+.pms-stat-card--info .pms-stat-card__icon {
+  background-color: var(--pms-color-info);
+}
+.pms-stat-card--success .pms-stat-card__icon {
+  background-color: var(--pms-color-success);
+}
+.pms-stat-card--warning .pms-stat-card__icon {
+  background-color: var(--pms-color-warning);
+}
+.pms-stat-card--danger .pms-stat-card__icon {
+  background-color: var(--pms-color-danger);
+}
+.pms-stat-card--info.pms-stat-card--accent {
+  background-color: var(--pms-color-info-subtle);
+  border-color: var(--pms-color-info);
+}
+.pms-stat-card--success.pms-stat-card--accent {
+  background-color: var(--pms-color-success-subtle);
+  border-color: var(--pms-color-success);
+}
+.pms-stat-card--warning.pms-stat-card--accent {
+  background-color: var(--pms-color-warning-subtle);
+  border-color: var(--pms-color-warning);
+}
+.pms-stat-card--danger.pms-stat-card--accent {
+  background-color: var(--pms-color-danger-subtle);
+  border-color: var(--pms-color-danger);
+}
+
 /* Active Campaigns (rail) */
 .pms-cc-active {
   list-style: none;
@@ -2625,6 +2714,7 @@ textarea.pms-control {
   .pms-shell {
     grid-template-columns: 64px minmax(0, 1fr);
   }
+  .pms-shell__brand-text,
   .pms-shell__brand-name,
   .pms-nav-group__label {
     display: none;

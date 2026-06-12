@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = {
-  title: "Masuk — Promotion Management System",
+  title: "Masuk — Campaign Tracker",
 };
 
 /**
@@ -27,8 +27,8 @@ export default async function LoginPage({
     <main className="pms-login">
       <aside className="pms-login__aside">
         <div className="pms-login__aside-brand">
-          <span className="pms-login__aside-mark">PMS</span>
-          <span>Promotion Manager</span>
+          <span className="pms-login__aside-mark">CT</span>
+          <span>Campaign Tracker</span>
         </div>
         <div>
           <h2 className="pms-login__aside-headline">
@@ -45,7 +45,7 @@ export default async function LoginPage({
             <span className="pms-login__aside-step">Eksekusi</span>
           </div>
         </div>
-        <p className="pms-login__aside-sub">Promotion Management System</p>
+        <p className="pms-login__aside-sub">Campaign Tracker by Gie</p>
       </aside>
       <div className="pms-login__panel">
         <LoginForm callbackUrl={callbackUrl} />

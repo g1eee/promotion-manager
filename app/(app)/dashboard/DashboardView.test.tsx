@@ -137,18 +137,17 @@ describe("DashboardView", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Needs Attention")).toBeInTheDocument();
+      expect(screen.getByText("Pending Review")).toBeInTheDocument();
     });
 
     expect(fetch).toHaveBeenCalledWith("/api/dashboard?brandId=kalova&limit=5", {
       cache: "no-store",
     });
-    // Hero summary + Action Center
-    expect(screen.getByText("Pending Review")).toBeInTheDocument();
+    // Hero summary + KPI stat cards
     expect(screen.getByText("Waiting Execution")).toBeInTheDocument();
     expect(screen.getByText("Unread Feedback")).toBeInTheDocument();
-    // Active campaign project card
-    expect(screen.getByText("Active Campaigns")).toBeInTheDocument();
+    // "Active Campaigns" appears both as a stat card and the rail card title
+    expect(screen.getAllByText("Active Campaigns").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Payday Campaign").length).toBeGreaterThan(0);
     // Campaign calendar
     expect(screen.getByText("Kalender Campaign")).toBeInTheDocument();
