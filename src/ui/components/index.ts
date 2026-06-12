@@ -57,3 +57,15 @@ export type {
   SpinnerSize,
   SpinnerOverlayProps,
 } from "./Spinner";
+
+export { PageHeader } from "./PageHeader";
+export type { PageHeaderProps } from "./PageHeader";
+
+export { Checkbox } from "./Checkbox";
+export type { CheckboxProps } from "./Checkbox";
+
+export { Tooltip } from "./Tooltip";
+export type { TooltipProps } from "./Tooltip";
+
+export { Tabs } from "./Tabs";
+export type { TabsProps, Tab } from "./Tabs";
